@@ -1,29 +1,32 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
 
 :root {
-  /* Artisan Premium Palette */
-  --primary: #d4af37;
-  /* Gold/Metallic */
-  --primary-hover: #b8860b;
-  --secondary: #2c3e50;
-  /* Midnight Blue */
-  --accent: #8b4513;
-  /* Saddle Brown (Leathern feel) */
-  --background: #0f1115;
-  /* Deep dark carbon */
-  --surface: #1a1d23;
-  /* Lighter surface */
-  --surface-hover: #23272f;
+  /* Moroccan Artisan Palette */
+  --primary: #e67e22;
+  /* Terracotta / Saffron */
+  --primary-hover: #d35400;
+  --majorelle: #6050dc;
+  /* Majorelle Blue */
+  --saffron: #f1c40f;
+  --background: #0d0e12;
+  /* Deep carbon base */
+  --surface: #15171c;
+  /* Night Riad Surface */
+  --surface-hover: #1c1f26;
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --border: #2d343f;
 
-  --glass: rgba(26, 29, 35, 0.7);
+  --emerald: #27ae60;
+  /* Moroccan Tile Green */
+
+  --glass: rgba(21, 23, 28, 0.8);
   --glass-border: rgba(255, 255, 255, 0.05);
 
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0(0 0 / 0.1)), 0 4px 6px -4px rgb(0 0 / 0.1);
+  --zellige-pattern: radial-gradient(circle at 0% 0%, transparent 25%, rgba(230, 126, 34, 0.05) 25.5%, rgba(230, 126, 34, 0.05) 50%, transparent 50.5%),
+    radial-gradient(circle at 100% 100%, transparent 25%, rgba(230, 126, 34, 0.05) 25.5%, rgba(230, 126, 34, 0.05) 50%, transparent 50.5%),
+    radial-gradient(circle at 100% 0%, transparent 25%, rgba(96, 80, 220, 0.05) 25.5%, rgba(96, 80, 220, 0.05) 50%, transparent 50.5%),
+    radial-gradient(circle at 0% 100%, transparent 25%, rgba(96, 80, 220, 0.05) 25.5%, rgba(96, 80, 220, 0.05) 50%, transparent 50.5%);
 }
 
 * {
@@ -35,26 +38,69 @@
 body {
   font-family: 'Outfit', sans-serif;
   background-color: var(--background);
+  background-image: var(--zellige-pattern);
+  background-size: 60px 60px;
   color: var(--text-main);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+h1,
+h2,
+h3,
+.heading {
+  font-family: 'Playfair Display', serif;
 }
 
-button {
-  font-family: inherit;
-  cursor: pointer;
-  border: none;
-  background: none;
+/* Moorish Arch framing */
+.arch-frame {
+  border-radius: 50% 50% 12px 12px / 40% 40% 12px 12px;
+  overflow: hidden;
+  position: relative;
 }
 
-/* Premium Scrollbar */
+/* Glassmorphism with character */
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+}
+
+.golden-text {
+  background: linear-gradient(to right, #e67e22, #f1c40f, #e67e22);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Zellige card styling */
+.zellige-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+
+.zellige-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(to right, var(--primary), var(--majorelle));
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -62,37 +108,6 @@ button {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
-}
-
-/* Glassmorphism utility */
-.glass {
-  background: var(--glass);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
-}
-
-/* Golden gradient text */
-.text-gradient {
-  background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.golden-text {
-  background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
+  background: var(--primary);
+  border-radius: 10px;
 }
