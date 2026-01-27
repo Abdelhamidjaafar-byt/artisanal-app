@@ -7,55 +7,28 @@ const orderSchema = new mongoose.Schema(
             ref: "User",
             required: true,
         },
-        items: [
-            {
-                product: {
-                    type: mongoose.Schema.Types.ObjectId,
-                    ref: "Product",
-                    required: true,
-                },
-                quantity: {
-                    type: Number,
-                    required: true,
-                    min: 1,
-                },
-                // Requirement: Tracking customized orders
-                customizationDetails: {
-                    type: String,
-                },
-            },
-        ],
-        totalAmount: {
-            type: Number,
+        artisan: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+        },
+        product: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Product",
             required: true,
         },
         status: {
             type: String,
-            enum: [
-                "in_cart",        // en_panier
-                "pending",        // en_attente
-                "paid",           // payé
-                "in_production",  // en_fabrication
-                "completed",      // terminé
-                "shipped",        // expédié / livré
-                "cancelled",      // annulé
-            ],
-            default: "in_cart",
+            enum: ["PENDING", "IN_FABRICATION", "FINISHED", "DELIVERED"],
+            default: "PENDING",
         },
-        shippingAddress: {
+        customizationDetails: {
             type: String,
-            required: function () {
-                return this.status !== 'in_cart';
-            },
+            trim: true,
         },
-        paymentInfo: {
-            id: { type: String },
-            status: {
-                type: String,
-                enum: ["pending", "completed", "failed"],
-                default: "pending",
-            },
-            method: { type: String }, // Requirement: Payment management
+        price: {
+            type: Number,
+            required: true,
         },
     },
     { timestamps: true }

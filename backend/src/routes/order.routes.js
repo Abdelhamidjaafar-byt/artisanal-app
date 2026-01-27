@@ -1,44 +1,54 @@
 import express from "express";
-import { body, validationResult } from "express-validator";
-import {
-    createOrder,
-    getMyOrders,
-    getOrders,
-    updateOrderStatus,
-    updateOrder,
-    deleteOrder
-} from "../controllers/order.controller.js";
-import { verifyToken, authorize, checkApproved } from "../middlewares/auth.middleware.js";
+import Order from "../models/Order.js";
+import auth from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-// Validation middleware
-const validate = (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+// Create Order
+router.post("/", auth, async (req, res) => {
+    try {
+        const { artisan, product, customizationDetails, price } = req.body;
+        const order = await Order.create({
+            client: req.user.id,
+            artisan,
+            product,
+            customizationDetails,
+            price
+        });
+        res.status(201).json(order);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
-    next();
-};
+});
 
-const orderValidation = [
-    body("orderItems").isArray({ min: 1 }).withMessage("Order items must be an array and not empty"),
-    body("orderItems.*.product").notEmpty().withMessage("Product ID is required"),
-    body("orderItems.*.quantity").isInt({ min: 1 }).withMessage("Quantity must be at least 1"),
-    body("shippingAddress").notEmpty().withMessage("Shipping address is required"),
-    body("paymentMethod").notEmpty().withMessage("Payment method is required"),
-    body("mobileNumber").notEmpty().withMessage("Mobile number is required"),
-    validate
-];
+// Get My Orders (Client or Artisan)
+router.get("/my-orders", auth, async (req, res) => {
+    try {
+        const orders = await Order.find({
+            $or: [{ client: req.user.id }, { artisan: req.user.id }]
+        }).populate("product").populate("client", "name email").populate("artisan", "name email");
+        res.json(orders);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
 
-// Client: Create order, Get my orders, Update/Delete own order
-router.post("/", verifyToken, orderValidation, createOrder);
-router.get("/myorders", verifyToken, getMyOrders);
-router.patch("/:id", verifyToken, updateOrder);
-router.delete("/:id", verifyToken, deleteOrder);
+// Update Order Status (Artisan only)
+router.put("/:id/status", auth, async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id);
+        if (!order) return res.status(404).json({ message: "Order not found" });
 
-// Admin/Artisan: Get all orders, Update status (Must be approved)
-router.get("/", verifyToken, authorize("ADMIN", "ARTISAN"), checkApproved, getOrders);
-router.put("/:id/status", verifyToken, authorize("ADMIN", "ARTISAN"), checkApproved, updateOrderStatus);
+        if (order.artisan.toString() !== req.user.id) {
+            return res.status(403).json({ message: "Unauthorized" });
+        }
+
+        order.status = req.body.status;
+        await order.save();
+        res.json(order);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
 
 export default router;
