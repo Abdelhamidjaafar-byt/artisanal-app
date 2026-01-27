@@ -22,6 +22,7 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use("/uploads", express.static("uploads"));
 
 // Data sanitization against NoSQL query injection
 app.use(mongoSanitize());

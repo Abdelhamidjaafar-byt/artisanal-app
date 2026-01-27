@@ -171,8 +171,8 @@ router.get('/auth/google/callback',
   handleSocialCallback
 );
 
-    // Facebook
-    router.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }));
+// Facebook
+router.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }));
 
 router.get('/auth/facebook/callback',
   passport.authenticate('facebook', { failureRedirect: '/login' }),
@@ -185,12 +185,12 @@ router.post('/login/password',
   handleSocialCallback
 );
 
-    // --- Logout Route ---
-    router.get('/logout', (req, res, next) => {
-      req.logout(function (err) {
-        if (err) { return next(err); }
-        res.redirect('/');
-      });
-    });
+// --- Logout Route ---
+router.get('/logout', (req, res, next) => {
+  req.logout(function (err) {
+    if (err) { return next(err); }
+    res.redirect('/');
+  });
+});
 
-    export default router;
+export default router;
