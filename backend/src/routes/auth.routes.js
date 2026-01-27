@@ -1,182 +1,125 @@
 import express from 'express';
-const router = express.Router();
-import { passport, users } from '../auth.js'; // Updated path to auth.js
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import { passport } from '../auth.js';
+import User from '../models/User.js';
 
-// Middleware to check if the user is authenticated
-const isAuthenticated = (req, res, next) => {
-  if (req.isAuthenticated()) {
-    return next();
-  }
-  res.redirect('/login');
+const router = express.Router();
+
+// Helper to generate JWT
+const generateToken = (user) => {
+    return jwt.sign(
+        { id: user._id, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+    );
 };
 
-// --- Main Routes ---
-router.get('/', (req, res) => {
-  let userGreeting = 'Welcome, Guest!';
-  if (req.isAuthenticated()) {
-    userGreeting = `Welcome, ${req.user.displayName}! (${req.user.role})`;
-  }
-  res.send(`
-    <h1>Artisanal Platform</h1>
-    <p>${userGreeting}</p>
-    <ul>
-      ${req.isAuthenticated() ? `
-        <li><a href="/profile">View Profile</a></li>
-        <li><a href="/logout">Logout</a></li>
-      ` : `
-        <li><a href="/login">Login</a></li>
-        <li><a href="/signup">Sign Up</a></li>
-        <li><a href="/auth/google">Login with Google</a></li>
-        <li><a href="/auth/facebook">Login with Facebook</a></li>
-      `}
-    </ul>
-  `);
-});
+// --- AUTH API ---
 
-router.get('/login', (req, res) => {
-  const errorMessage = req.flash('error');
-  res.send(`
-    <h1>Login</h1>
-    ${errorMessage.length ? `<p style="color:red;">${errorMessage}</p>` : ''}
-    <form action="/login/password" method="post">
-      <div>
-        <label>Email:</label>
-        <input type="email" name="email"/>
-      </div>
-      <div>
-        <label>Password:</label>
-        <input type="password" name="password"/>
-      </div>
-      <div>
-        <input type="submit" value="Log In"/>
-      </div>
-    </form>
-    <hr>
-    <a href="/auth/google">Login with Google</a><br>
-    <a href="/auth/facebook">Login with Facebook</a><br>
-    <hr>
-    <p>Don't have an account? <a href="/signup">Sign up</a></p>
-  `);
-});
+// Local Register
+router.post("/register", async (req, res) => {
+    try {
+        const { name, email, password, role, phone, region, bio } = req.body;
 
-// --- Profile Route ---
-router.get('/profile', isAuthenticated, (req, res) => {
-  let profileInfo = `
-    <h2>Welcome to your profile, ${req.user.displayName}</h2>
-    <p>Your ID: ${req.user.id}</p>
-    <p>Your Role: ${req.user.role}</p>
-    <p>Provider: ${req.user.provider}</p>
-  `;
+        const userExists = await User.findOne({ email });
+        if (userExists) {
+            return res.status(400).json({ message: "User already exists" });
+        }
 
-  if (req.user.role === 'Artisan') {
-    profileInfo += '<p>You have access to Artisan-specific features!</p>';
-  } else {
-    profileInfo += '<p>You have access to Client-specific features.</p>';
-  }
-  
-  profileInfo += '<a href="/">Home</a>';
-  res.send(profileInfo);
-});
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-// --- Signup Routes ---
-router.get('/signup', (req, res) => {
-  res.send(`
-    <h1>Sign Up</h1>
-    <form action="/signup" method="post">
-      <div>
-        <label>First Name:</label>
-        <input type="text" name="firstName"/>
-      </div>
-      <div>
-        <label>Last Name:</label>
-        <input type="text" name="lastName"/>
-      </div>
-      <div>
-        <label>Email:</label>
-        <input type="email" name="email"/>
-      </div>
-      <div>
-        <label>Phone Number:</label>
-        <input type="tel" name="phone"/>
-      </div>
-      <div>
-        <label>Password:</label>
-        <input type="password" name="password"/>
-      </div>
-      <div>
-        <input type="submit" value="Sign Up"/>
-      </div>
-    </form>
-    <hr>
-    <p>Already have an account? <a href="/login">Login</a></p>
-  `);
-});
+        const user = await User.create({
+            name,
+            email,
+            password: hashedPassword,
+            role: role || "CLIENT",
+            phone,
+            region,
+            bio
+        });
 
-router.post('/signup', (req, res, next) => {
-  const { firstName, lastName, email, phone, password } = req.body;
-  const userExists = users.find(u => u.email === email);
-
-  if (userExists) {
-    return res.redirect('/login');
-  }
-
-  const newUser = {
-    id: Date.now().toString(),
-    firstName: firstName,
-    lastName: lastName,
-    email: email,
-    phone: phone,
-    password: password, // In a real app, hash and salt this password
-    displayName: `${firstName} ${lastName}`,
-    provider: 'local',
-    role: 'Client' // or 'Artisan'
-  };
-  users.push(newUser);
-
-  req.login(newUser, (err) => {
-    if (err) {
-      return next(err);
+        res.status(201).json({
+            message: "User registered successfully",
+            token: generateToken(user),
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+            },
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
-    return res.redirect('/profile');
-  });
 });
 
-// --- Google Auth Routes ---
-router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+// Local Login (API)
+router.post("/login", (req, res, next) => {
+    passport.authenticate('local', { session: false }, (err, user, info) => {
+        if (err || !user) {
+            return res.status(400).json({
+                message: info ? info.message : 'Login failed',
+                user: user
+            });
+        }
 
-router.get('/auth/google/callback', 
-  passport.authenticate('google', { failureRedirect: '/login' }),
-  (req, res) => {
-    // Successful authentication, redirect home.
-    res.redirect('/profile');
-  }
+        req.login(user, { session: false }, (err) => {
+            if (err) {
+                res.send(err);
+            }
+            const token = generateToken(user);
+            return res.json({
+                token,
+                user: {
+                    id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role,
+                },
+            });
+        });
+    })(req, res, next);
+});
+
+// --- Social Auth ---
+
+// Google
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+router.get('/google/callback',
+    passport.authenticate('google', { failureRedirect: process.env.FRONTEND_URL + '/login', session: false }),
+    (req, res) => {
+        const token = generateToken(req.user);
+        // Redirect back to frontend with token
+        res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?token=${token}&user=${encodeURIComponent(JSON.stringify({
+            id: req.user._id,
+            name: req.user.name || req.user.displayName,
+            email: req.user.email,
+            role: req.user.role
+        }))}`);
+    }
 );
 
-// --- Facebook Auth Routes ---
-router.get('/auth/facebook', passport.authenticate('facebook'));
+// Facebook
+router.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }));
 
-router.get('/auth/facebook/callback',
-  passport.authenticate('facebook', { failureRedirect: '/login' }),
-  (req, res) => {
-    // Successful authentication, redirect home.
-    res.redirect('/profile');
-  }
+router.get('/facebook/callback',
+    passport.authenticate('facebook', { failureRedirect: process.env.FRONTEND_URL + '/login', session: false }),
+    (req, res) => {
+        const token = generateToken(req.user);
+        res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?token=${token}&user=${encodeURIComponent(JSON.stringify({
+            id: req.user._id,
+            name: req.user.name || req.user.displayName,
+            email: req.user.email,
+            role: req.user.role
+        }))}`);
+    }
 );
 
-// --- Local Auth Route ---
-router.post('/login/password',
-  passport.authenticate('local', { failureRedirect: '/login', failureFlash: true }),
-  (req, res) => {
-    res.redirect('/profile');
-  }
-);
-
-// --- Logout Route ---
-router.get('/logout', (req, res, next) => {
-  req.logout(function(err) {
-    if (err) { return next(err); }
-    res.redirect('/');
-  });
+// Logout (API doesn't really need this if using JWT, but for completeness)
+router.get('/logout', (req, res) => {
+    res.json({ message: "Logout successful" });
 });
 
 export default router;

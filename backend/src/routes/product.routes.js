@@ -10,6 +10,8 @@ import {
 import auth from "../middlewares/auth.middleware.js";
 import role from "../middlewares/role.middleware.js";
 
+import upload from "../middlewares/upload.middleware.js";
+
 const router = express.Router();
 
 // Public
@@ -17,8 +19,8 @@ router.get("/", getProducts);
 router.get("/:id", getProductById);
 
 // Artisan only
-router.post("/", auth, role("ARTISAN"), createProduct);
-router.put("/:id", auth, role("ARTISAN"), updateProduct);
+router.post("/", auth, role("ARTISAN"), upload.array("images", 5), createProduct);
+router.put("/:id", auth, role("ARTISAN"), upload.array("images", 5), updateProduct);
 router.delete("/:id", auth, role("ARTISAN"), deleteProduct);
 
 export default router;

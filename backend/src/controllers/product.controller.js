@@ -3,8 +3,11 @@ import Product from "../models/Product.js";
 // CREATE PRODUCT (ARTISAN)
 export const createProduct = async (req, res) => {
     try {
+        const images = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
+
         const product = await Product.create({
             ...req.body,
+            images: images,
             artisan: req.user.id,
         });
 
@@ -56,7 +59,13 @@ export const updateProduct = async (req, res) => {
             return res.status(403).json({ message: "Not authorized" });
         }
 
-        Object.assign(product, req.body);
+        const images = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
+        const updateData = { ...req.body };
+        if (images.length > 0) {
+            updateData.images = [...(product.images || []), ...images];
+        }
+
+        Object.assign(product, updateData);
         await product.save();
 
         res.json(product);

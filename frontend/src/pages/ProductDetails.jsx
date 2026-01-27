@@ -7,12 +7,31 @@ import { ArrowLeft, ShoppingCart, Sparkles, Clock, ShieldCheck, MapPin } from "l
 const ProductDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [product, setProduct] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [orderModal, setOrderModal] = useState(false);
+    const [customDetails, setCustomDetails] = useState("");
+    const [isOrdering, setIsOrdering] = useState(false);
 
     useEffect(() => {
         fetchProduct();
     }, [id]);
+
+    const handleOrder = async () => {
+        setIsOrdering(true);
+        try {
+            await api.post("/orders", {
+                artisan: product.artisan._id,
+                product: product._id,
+                customizationDetails: customDetails,
+                price: product.price
+            });
+            alert("Your order has been inscribed. The artisan will begin the ritual soon.");
+            setOrderModal(false);
+        } catch (error) {
+            alert("The order spell failed. Please try again or consult the masters.");
+        } finally {
+            setIsOrdering(false);
+        }
+    };
 
     const fetchProduct = async () => {
         try {
@@ -98,10 +117,61 @@ const ProductDetails = () => {
                             <div className="flex items-center gap-2"><ShieldCheck size={16} className="text-primary" /> Guild Verified</div>
                         </div>
 
-                        <button className="w-full bg-primary text-white py-6 rounded-2xl font-black flex items-center justify-center gap-4 hover:shadow-[0_0_40px_rgba(230,126,34,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-[0.3em] text-sm mt-4">
+                        <button 
+                            onClick={() => setOrderModal(true)}
+                            className="w-full bg-primary text-white py-6 rounded-2xl font-black flex items-center justify-center gap-4 hover:shadow-[0_0_40px_rgba(230,126,34,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-[0.3em] text-sm mt-4"
+                        >
                             Acquire Masterpiece <ShoppingCart size={20} />
                         </button>
                     </div>
+
+                    {/* Order Modal */}
+                    {orderModal && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-background/80 backdrop-blur-md">
+                            <motion.div 
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="w-full max-w-lg bg-surface border border-primary/20 p-10 arch-frame shadow-2xl relative"
+                            >
+                                <h3 className="text-3xl font-black heading golden-text mb-4 text-center">Inscribe Order</h3>
+                                <p className="text-xs text-text-muted uppercase tracking-widest text-center mb-8 font-bold">Personalize your heritage acquisition</p>
+                                
+                                <div className="space-y-6">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Customization Requests</label>
+                                        <textarea 
+                                            value={customDetails}
+                                            onChange={(e) => setCustomDetails(e.target.value)}
+                                            className="w-full bg-background border border-border rounded-xl py-4 px-6 focus:border-primary outline-none transition-all font-medium resize-none"
+                                            rows="4"
+                                            placeholder="Specific sizes, colors, or engravings..."
+                                        />
+                                    </div>
+                                    
+                                    <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/10">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Final Investment</span>
+                                        <span className="text-2xl font-black heading text-primary">{product.price} MAD</span>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4 pt-4">
+                                        <button 
+                                            onClick={() => setOrderModal(false)}
+                                            className="py-4 rounded-xl border border-border text-[10px] font-black uppercase tracking-widest hover:bg-background transition-all"
+                                        >
+                                            Chose Again
+                                        </button>
+                                        <button 
+                                            onClick={handleOrder}
+                                            disabled={isOrdering}
+                                            className="py-4 rounded-xl bg-primary text-white text-[10px] font-black uppercase tracking-widest hover:shadow-lg shadow-primary/20 transition-all disabled:opacity-50"
+                                        >
+                                            {isOrdering ? "Inscribing..." : "Confirm Ritual"}
+                                        </button>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
 
                     <div className="bg-surface/50 border border-border p-6 rounded-2xl">
                         <h4 className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-3 flex items-center gap-2">

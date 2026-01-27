@@ -7,7 +7,8 @@ import Marketplace from "./pages/Marketplace";
 import ArtisanDashboard from "./pages/artisan/Dashboard";
 import ProductForm from "./pages/artisan/ProductForm";
 import ProductDetails from "./pages/ProductDetails";
-import { MoveRight, Sparkles, Gem, ScrollText, History } from "lucide-react";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { MoveRight, Sparkles, Gem, ScrollText, History, Hammer } from "lucide-react";
 import { motion } from "framer-motion";
 
 const Home = () => (
@@ -97,9 +98,11 @@ const AppContent = () => {
         <Route path="/product/:id" element={<ProductDetails />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/artisan/dashboard" element={<ArtisanDashboard />} />
-        <Route path="/artisan/product/new" element={<ProductForm />} />
-        <Route path="/artisan/product/edit/:id" element={<ProductForm />} />
+        <Route element={<ProtectedRoute allowedRoles={["ARTISAN"]} />}>
+          <Route path="/artisan/dashboard" element={<ArtisanDashboard />} />
+          <Route path="/artisan/product/new" element={<ProductForm />} />
+          <Route path="/artisan/product/edit/:id" element={<ProductForm />} />
+        </Route>
       </Routes>
     </div>
   );

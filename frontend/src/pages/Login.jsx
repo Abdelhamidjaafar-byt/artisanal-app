@@ -96,6 +96,26 @@ const Login = () => {
                                 <>Enter the Guild <LogIn size={18} /></>
                             )}
                         </button>
+
+                        <div className="relative my-8">
+                            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border"></div></div>
+                            <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-[0.2em]"><span className="bg-surface px-4 text-text-muted">Or via the Silk Road</span></div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <a 
+                                href="http://localhost:3000/api/auth/google"
+                                className="flex items-center justify-center gap-2 py-4 bg-background border border-border rounded-xl text-[10px] font-black uppercase tracking-widest hover:border-primary transition-all"
+                            >
+                                Google
+                            </a>
+                            <a 
+                                href="http://localhost:3000/api/auth/facebook"
+                                className="flex items-center justify-center gap-2 py-4 bg-background border border-border rounded-xl text-[10px] font-black uppercase tracking-widest hover:border-majorelle transition-all"
+                            >
+                                Facebook
+                            </a>
+                        </div>
                     </form>
 
                     <div className="mt-10 text-center text-xs font-bold text-text-muted uppercase tracking-widest">

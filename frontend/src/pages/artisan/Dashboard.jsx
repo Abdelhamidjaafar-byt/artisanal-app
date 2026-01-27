@@ -24,7 +24,11 @@ const ArtisanDashboard = () => {
             // In a real app, you might have a dedicated /artisan/products endpoint
             // For now, we'll filter globally or assume backend handles artisan scope
             const res = await api.get("/products");
-            const myProducts = res.data.filter(p => p.artisan?._id === user?.id || p.artisan === user?.id);
+            const myProducts = res.data.filter(p => {
+                const artisanId = p.artisan?._id || p.artisan;
+                const userId = user?.id || user?._id;
+                return artisanId === userId;
+            });
             setProducts(myProducts);
             
             // Calculate Stats

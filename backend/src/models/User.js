@@ -22,6 +22,31 @@ const userSchema = new mongoose.Schema(
             enum: ["ADMIN", "ARTISAN", "CLIENT"],
             default: "CLIENT",
         },
+        provider: {
+            type: String,
+            enum: ["local", "google", "facebook"],
+            default: "local",
+        },
+        providerId: {
+            type: String,
+            unique: true,
+            sparse: true,
+        },
+        phone: {
+            type: String,
+            trim: true,
+        },
+        region: {
+            type: String,
+            trim: true,
+        },
+        bio: {
+            type: String,
+            trim: true,
+        },
+        avatar: {
+            type: String,
+        },
     },
     { timestamps: true }
 );

@@ -7,16 +7,8 @@ import { ArrowLeft, Save, Sparkles, Image as ImageIcon, Tag, Coins, Clock } from
 const ProductForm = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [isLoading, setIsLoading] = useState(false);
-    const [formData, setFormData] = useState({
-        title: "",
-        description: "",
-        price: "",
-        category: "Jewelry",
-        customizable: false,
-        fabricationDelay: 0,
-        images: []
-    });
+    const [selectedFiles, setSelectedFiles] = useState([]);
+    const [previews, setPreviews] = useState([]);
 
     useEffect(() => {
         if (id) {
@@ -27,21 +19,68 @@ const ProductForm = () => {
     const fetchProduct = async () => {
         try {
             const res = await api.get(`/products/${id}`);
-            const { title, description, price, category, customizable, fabricationDelay } = res.data;
-            setFormData({ title, description, price, category, customizable, fabricationDelay, images: [] });
+            const { title, description, price, category, customizable, fabricationDelay, images } = res.data;
+            setFormData({ title, description, price, category, customizable, fabricationDelay, images });
+            if (images && images.length > 0) {
+                setPreviews(images.map(img => img.startsWith('http') ? img : `http://localhost:3000${img}`));
+            }
         } catch (error) {
             console.error("Failed to load product for editing", error);
+        }
+    };
+
+    const handleFileChange = (e) => {
+        const files = Array.from(e.target.files);
+        setSelectedFiles(prev => [...prev, ...files]);
+        
+        const newPreviews = files.map(file => URL.createObjectURL(file));
+        setPreviews(prev => [...prev, ...newPreviews]);
+    };
+
+    const removeImage = (index, isExisting = false) => {
+        if (isExisting) {
+            setFormData(prev => ({
+                ...prev,
+                images: prev.images.filter((_, i) => i !== index)
+            }));
+            setPreviews(prev => prev.filter((_, i) => i !== index));
+        } else {
+            const adjustedIndex = index - (formData.images?.length || 0);
+            setSelectedFiles(prev => prev.filter((_, i) => i !== adjustedIndex));
+            setPreviews(prev => prev.filter((_, i) => i !== index));
         }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
+
+        const data = new FormData();
+        data.append("title", formData.title);
+        data.append("description", formData.description);
+        data.append("price", Number(formData.price));
+        data.append("category", formData.category);
+        data.append("customizable", formData.customizable);
+        data.append("fabricationDelay", Number(formData.fabricationDelay));
+        
+        // Pass existing images that were kept
+        if (formData.images.length > 0) {
+            data.append("existingImages", JSON.stringify(formData.images));
+        }
+
+        selectedFiles.forEach(file => {
+            data.append("images", file);
+        });
+
         try {
             if (id) {
-                await api.put(`/products/${id}`, formData);
+                await api.put(`/products/${id}`, data, {
+                    headers: { "Content-Type": "multipart/form-data" }
+                });
             } else {
-                await api.post("/products", formData);
+                await api.post("/products", data, {
+                    headers: { "Content-Type": "multipart/form-data" }
+                });
             }
             navigate("/artisan/dashboard");
         } catch (error) {
@@ -160,14 +199,46 @@ const ProductForm = () => {
                         </div>
                     </div>
 
-                    {/* Placeholder for Images */}
-                    <div className="border-2 border-dashed border-border rounded-3xl p-12 text-center space-y-4 hover:border-primary/40 transition-all group cursor-pointer bg-background/50">
-                        <div className="inline-flex p-4 bg-primary/10 rounded-2xl text-primary group-hover:scale-110 transition-transform">
-                            <ImageIcon size={32} />
-                        </div>
-                        <div className="space-y-1">
-                            <p className="font-bold heading text-lg">Unveil the Visuals</p>
-                            <p className="text-[10px] text-text-muted uppercase tracking-widest">Upload high-resolution captures of your work</p>
+                    {/* Image Upload Area */}
+                    <div className="space-y-4">
+                        <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Grand Gallery / Images</label>
+                        
+                        {previews.length > 0 && (
+                            <div className="grid grid-cols-4 gap-4 mb-6">
+                                {previews.map((url, idx) => (
+                                    <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden border border-border group">
+                                        <img src={url} alt="preview" className="w-full h-full object-cover" />
+                                        <button 
+                                            type="button"
+                                            onClick={() => removeImage(idx, idx < (formData.images?.length || 0))}
+                                            className="absolute inset-0 bg-red-500/80 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center font-black uppercase text-[10px] tracking-widest"
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        <div 
+                            onClick={() => document.getElementById('imageInput').click()}
+                            className="border-2 border-dashed border-border rounded-3xl p-10 text-center space-y-4 hover:border-primary/40 transition-all group cursor-pointer bg-background/50"
+                        >
+                            <input 
+                                id="imageInput"
+                                type="file" 
+                                multiple 
+                                hidden 
+                                onChange={handleFileChange}
+                                accept="image/*"
+                            />
+                            <div className="inline-flex p-4 bg-primary/10 rounded-2xl text-primary group-hover:scale-110 transition-transform">
+                                <ImageIcon size={32} />
+                            </div>
+                            <div className="space-y-1">
+                                <p className="font-bold heading text-lg">Unveil the Visuals</p>
+                                <p className="text-[10px] text-text-muted uppercase tracking-widest">Select high-resolution captures of your work</p>
+                            </div>
                         </div>
                     </div>
 

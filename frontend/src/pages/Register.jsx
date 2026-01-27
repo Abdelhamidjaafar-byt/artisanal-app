@@ -21,7 +21,7 @@ const Register = () => {
         setError("");
         setIsLoading(true);
         try {
-            await register(formData.name, formData.email, formData.password, formData.role);
+            await register(formData);
             navigate("/login");
         } catch (err) {
             setError(err.response?.data?.message || "Registration denied by the guild elders.");
@@ -118,6 +118,47 @@ const Register = () => {
                                 />
                             </div>
                         </div>
+
+                        {formData.role === "ARTISAN" && (
+                            <motion.div 
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                className="space-y-6 pt-4 border-t border-border"
+                            >
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Phone Number</label>
+                                        <input 
+                                            type="tel"
+                                            value={formData.phone || ""}
+                                            onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                                            className="w-full bg-background/50 border border-border rounded-xl py-4 px-6 focus:border-primary outline-none transition-all text-sm font-medium"
+                                            placeholder="+212..."
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Crafting Region</label>
+                                        <input 
+                                            type="text"
+                                            value={formData.region || ""}
+                                            onChange={(e) => setFormData({...formData, region: e.target.value})}
+                                            className="w-full bg-background/50 border border-border rounded-xl py-4 px-6 focus:border-primary outline-none transition-all text-sm font-medium"
+                                            placeholder="e.g. Marrakech"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Your Story (Bio)</label>
+                                    <textarea 
+                                        value={formData.bio || ""}
+                                        onChange={(e) => setFormData({...formData, bio: e.target.value})}
+                                        className="w-full bg-background/50 border border-border rounded-xl py-4 px-6 focus:border-primary outline-none transition-all text-sm font-medium resize-none"
+                                        rows="3"
+                                        placeholder="Tell us about your heritage..."
+                                    />
+                                </div>
+                            </motion.div>
+                        )}
 
                         <button 
                             type="submit" 
