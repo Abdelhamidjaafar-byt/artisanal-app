@@ -15,10 +15,10 @@ app.use("/uploads", express.static("uploads"));
 
 // Express Session
 app.use(session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false } // For development. Use true in production with HTTPS
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false } // For development. Use true in production with HTTPS
 }));
 
 // Connect Flash middleware
@@ -29,15 +29,20 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 import orderRoutes from "./routes/order.routes.js";
+import reviewRoutes from "./routes/review.routes.js";
+
+import orderRoutes from "./routes/order.routes.js";
 
 import adminRoutes from "./routes/admin.routes.js";
 
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/orders", orderRoutes);
 app.use("/api/admin", adminRoutes);
 app.get("/", (req, res) => {
-    res.send("API is running...");
+  res.send("API is running...");
 });
 
 export default app;

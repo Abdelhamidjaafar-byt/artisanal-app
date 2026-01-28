@@ -2,14 +2,14 @@ import mongoose from "mongoose";
 
 const reviewSchema = new mongoose.Schema(
     {
+        client: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User", // Using 'client' as per CDC but ref User
+            required: true,
+        },
         product: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Product",
-            required: true,
-        },
-        client: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
             required: true,
         },
         rating: {
@@ -20,7 +20,6 @@ const reviewSchema = new mongoose.Schema(
         },
         comment: {
             type: String,
-            required: true,
             trim: true,
         },
     },

@@ -7,8 +7,7 @@ import {
     deleteProduct,
 } from "../controllers/product.controller.js";
 
-import auth from "../middlewares/auth.middleware.js";
-import role from "../middlewares/role.middleware.js";
+import { isAuthenticated, authorize } from "../middlewares/auth.middleware.js";
 
 import upload from "../middlewares/upload.middleware.js";
 
@@ -19,8 +18,8 @@ router.get("/", getProducts);
 router.get("/:id", getProductById);
 
 // Artisan only
-router.post("/", auth, role("ARTISAN"), upload.array("images", 5), createProduct);
-router.put("/:id", auth, role("ARTISAN"), upload.array("images", 5), updateProduct);
-router.delete("/:id", auth, role("ARTISAN"), deleteProduct);
+router.post("/", isAuthenticated, authorize("ARTISAN"), createProduct);
+router.put("/:id", isAuthenticated, authorize("ARTISAN"), updateProduct);
+router.delete("/:id", isAuthenticated, authorize("ARTISAN"), deleteProduct);
 
 export default router;

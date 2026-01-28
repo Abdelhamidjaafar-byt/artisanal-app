@@ -7,28 +7,55 @@ const orderSchema = new mongoose.Schema(
             ref: "User",
             required: true,
         },
-        artisan: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-            required: true,
-        },
-        product: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Product",
+        items: [
+            {
+                product: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: "Product",
+                    required: true,
+                },
+                quantity: {
+                    type: Number,
+                    required: true,
+                    min: 1,
+                },
+                // Requirement: Tracking customized orders
+                customizationDetails: {
+                    type: String,
+                },
+            },
+        ],
+        totalAmount: {
+            type: Number,
             required: true,
         },
         status: {
             type: String,
-            enum: ["PENDING", "IN_FABRICATION", "FINISHED", "DELIVERED"],
-            default: "PENDING",
+            enum: [
+                "in_cart",        // en_panier
+                "pending",        // en_attente
+                "paid",           // payé
+                "in_production",  // en_fabrication
+                "completed",      // terminé
+                "shipped",        // expédié / livré
+                "cancelled",      // annulé
+            ],
+            default: "in_cart",
         },
-        customizationDetails: {
+        shippingAddress: {
             type: String,
-            trim: true,
+            required: function () {
+                return this.status !== 'in_cart';
+            },
         },
-        price: {
-            type: Number,
-            required: true,
+        paymentInfo: {
+            id: { type: String },
+            status: {
+                type: String,
+                enum: ["pending", "completed", "failed"],
+                default: "pending",
+            },
+            method: { type: String }, // Requirement: Payment management
         },
     },
     { timestamps: true }

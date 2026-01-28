@@ -17,35 +17,27 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
-        role: {
-            type: String,
-            enum: ["ADMIN", "ARTISAN", "CLIENT"],
-            default: "CLIENT",
-        },
-        provider: {
-            type: String,
-            enum: ["local", "google", "facebook"],
-            default: "local",
-        },
-        providerId: {
-            type: String,
-            unique: true,
-            sparse: true,
-        },
         phone: {
             type: String,
-            trim: true,
         },
-        region: {
+        address: {
             type: String,
-            trim: true,
         },
-        bio: {
+        role: {
             type: String,
-            trim: true,
+            enum: ["ADMIN", "ARTISAN", "CLIENT"], // Primary actors [cite: 44]
+            default: "CLIENT",
         },
-        avatar: {
-            type: String,
+        // Specific fields for the Artisan profile [cite: 27, 51]
+        artisanProfile: {
+            bio: { type: String },          // Savoir-faire / Expertise 
+            specialties: [{ type: String }], // Craft types (e.g., Pottery) 
+            experience: { type: Number },    // Years of experience
+            region: { type: String },       // Geographical area 
+            isSubscribed: {
+                type: Boolean,
+                default: false
+            }, // For "Gestion des abonnements" 
         },
     },
     { timestamps: true }

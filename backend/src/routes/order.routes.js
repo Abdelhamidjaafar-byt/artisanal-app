@@ -1,54 +1,20 @@
 import express from "express";
-import Order from "../models/Order.js";
-import auth from "../middlewares/auth.middleware.js";
+import {
+    createOrder,
+    getMyOrders,
+    getOrders,
+    updateOrderStatus
+} from "../controllers/order.controller.js";
+import { isAuthenticated, authorize } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-// Create Order
-router.post("/", auth, async (req, res) => {
-    try {
-        const { artisan, product, customizationDetails, price } = req.body;
-        const order = await Order.create({
-            client: req.user.id,
-            artisan,
-            product,
-            customizationDetails,
-            price
-        });
-        res.status(201).json(order);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
+// Client: Create order (or add to cart), Get my orders
+router.post("/", isAuthenticated, createOrder);
+router.get("/myorders", isAuthenticated, getMyOrders);
 
-// Get My Orders (Client or Artisan)
-router.get("/my-orders", auth, async (req, res) => {
-    try {
-        const orders = await Order.find({
-            $or: [{ client: req.user.id }, { artisan: req.user.id }]
-        }).populate("product").populate("client", "name email").populate("artisan", "name email");
-        res.json(orders);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-
-// Update Order Status (Artisan only)
-router.put("/:id/status", auth, async (req, res) => {
-    try {
-        const order = await Order.findById(req.params.id);
-        if (!order) return res.status(404).json({ message: "Order not found" });
-
-        if (order.artisan.toString() !== req.user.id) {
-            return res.status(403).json({ message: "Unauthorized" });
-        }
-
-        order.status = req.body.status;
-        await order.save();
-        res.json(order);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
+// Admin/Artisan: Get all orders (filtered logic inside controller), Update status
+router.get("/", isAuthenticated, authorize("ADMIN", "ARTISAN"), getOrders);
+router.put("/:id/status", isAuthenticated, authorize("ADMIN", "ARTISAN"), updateOrderStatus);
 
 export default router;
