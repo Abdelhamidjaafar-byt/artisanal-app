@@ -25,18 +25,40 @@ const productSchema = new mongoose.Schema(
                 type: String,
             },
         ],
+        stock: {
+            type: Number,
+            required: true,
+            min: 0,
+            default: 0,
+        },
         category: {
             type: String,
             required: true,
+            enum: [
+                "Weaving",
+                "Pottery",
+                "Brassware",
+                "Woodworking",
+                "Embroidery",
+                "Tailoring",
+                "Leather Goods",
+                "Zellige",
+                "Ironwork",
+                "Tanning"
+            ], // Categories translated from the requirements 
         },
-        customizable: {
+        isCustomizable: {
             type: Boolean,
-            default: false,
+            default: false, // For "Possibilité de personnalisation" 
         },
-        fabricationDelay: {
-            type: Number, // days
+        productionTime: {
+            type: Number, // In days - For "Délais variables" 
             default: 0,
         },
+        averageRating: {
+            type: Number,
+            default: 0, // For "Avis et évaluations" 
+        }
     },
     { timestamps: true }
 );

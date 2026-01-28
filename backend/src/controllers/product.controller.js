@@ -17,7 +17,14 @@ export const createProduct = async (req, res) => {
 // GET ALL PRODUCTS (PUBLIC)
 export const getProducts = async (req, res) => {
     try {
-        const products = await Product.find()
+        const { category } = req.query;
+        let query = {};
+
+        if (category) {
+            query.category = category;
+        }
+
+        const products = await Product.find(query)
             .populate("artisan", "name email")
             .sort({ createdAt: -1 });
 

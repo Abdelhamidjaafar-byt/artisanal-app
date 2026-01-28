@@ -27,10 +27,15 @@ app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
 
+import orderRoutes from "./routes/order.routes.js";
+import reviewRoutes from "./routes/review.routes.js";
+
 app.use("/", authRoutes); // Use the new auth routes
 app.use("/api/products", productRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/reviews", reviewRoutes);
 app.get("/", (req, res) => {
-    res.send("API is running...");
+  res.send("API is running...");
 });
 
 export default app;
