@@ -2,8 +2,7 @@ import express from "express";
 import User from "../models/User.js";
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
-import auth from "../middlewares/auth.middleware.js";
-import role from "../middlewares/role.middleware.js";
+import { isAuthenticated as auth, authorize as role } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 

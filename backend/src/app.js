@@ -30,16 +30,12 @@ app.use(passport.session());
 
 import orderRoutes from "./routes/order.routes.js";
 import reviewRoutes from "./routes/review.routes.js";
-
-import orderRoutes from "./routes/order.routes.js";
-
 import adminRoutes from "./routes/admin.routes.js";
 
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/reviews", reviewRoutes);
-app.use("/api/orders", orderRoutes);
 app.use("/api/admin", adminRoutes);
 app.get("/", (req, res) => {
   res.send("API is running...");
