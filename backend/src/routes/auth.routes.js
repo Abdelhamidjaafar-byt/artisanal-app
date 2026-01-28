@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import { passport, users } from '../auth.js'; // Updated path to auth.js
+import { passport } from '../auth.js'; // Updated path to auth.js
 
 // Middleware to check if the user is authenticated
 const isAuthenticated = (req, res, next) => {
@@ -73,7 +73,7 @@ router.get('/profile', isAuthenticated, (req, res) => {
   } else {
     profileInfo += '<p>You have access to Client-specific features.</p>';
   }
-  
+
   profileInfo += '<a href="/">Home</a>';
   res.send(profileInfo);
 });
@@ -112,39 +112,43 @@ router.get('/signup', (req, res) => {
   `);
 });
 
-router.post('/signup', (req, res, next) => {
+import User from '../models/User.js';
+
+router.post('/signup', async (req, res, next) => {
   const { firstName, lastName, email, phone, password } = req.body;
-  const userExists = users.find(u => u.email === email);
+  try {
+    const userExists = await User.findOne({ email });
 
-  if (userExists) {
-    return res.redirect('/login');
-  }
-
-  const newUser = {
-    id: Date.now().toString(),
-    firstName: firstName,
-    lastName: lastName,
-    email: email,
-    phone: phone,
-    password: password, // In a real app, hash and salt this password
-    displayName: `${firstName} ${lastName}`,
-    provider: 'local',
-    role: 'Client' // or 'Artisan'
-  };
-  users.push(newUser);
-
-  req.login(newUser, (err) => {
-    if (err) {
-      return next(err);
+    if (userExists) {
+      // Ideally show an error message
+      return res.redirect('/login');
     }
-    return res.redirect('/profile');
-  });
+
+    const newUser = new User({
+      name: `${firstName} ${lastName}`, // User model uses 'name'
+      email: email,
+      phone: phone,
+      password: password, // In a real app, hash and salt this password
+      role: 'CLIENT' // Default
+    });
+
+    await newUser.save();
+
+    req.login(newUser, (err) => {
+      if (err) {
+        return next(err);
+      }
+      return res.redirect('/profile');
+    });
+  } catch (err) {
+    return next(err);
+  }
 });
 
 // --- Google Auth Routes ---
 router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
-router.get('/auth/google/callback', 
+router.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/login' }),
   (req, res) => {
     // Successful authentication, redirect home.
@@ -173,7 +177,7 @@ router.post('/login/password',
 
 // --- Logout Route ---
 router.get('/logout', (req, res, next) => {
-  req.logout(function(err) {
+  req.logout(function (err) {
     if (err) { return next(err); }
     res.redirect('/');
   });

@@ -9,13 +9,28 @@ const userSchema = new mongoose.Schema(
         },
         email: {
             type: String,
-            required: true,
+            required: function () {
+                return !this.googleId && !this.facebookId;
+            },
             unique: true,
+            sparse: true,
             lowercase: true,
         },
         password: {
             type: String,
-            required: true,
+            required: function () {
+                return !this.googleId && !this.facebookId;
+            },
+        },
+        googleId: {
+            type: String,
+            unique: true,
+            sparse: true
+        },
+        facebookId: {
+            type: String,
+            unique: true,
+            sparse: true
         },
         phone: {
             type: String,
