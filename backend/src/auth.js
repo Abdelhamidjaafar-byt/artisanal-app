@@ -30,6 +30,17 @@ passport.use(new GoogleStrategy({
       // Check if user already exists in our db by googleId
       let user = await User.findOne({ googleId: profile.id });
       if (user) {
+        // Ensure CLIENT role exists and provider is set
+        let updated = false;
+        if (!user.role.includes('CLIENT')) {
+          user.role.push('CLIENT');
+          updated = true;
+        }
+        if (user.provider !== 'google') {
+          user.provider = 'google';
+          updated = true;
+        }
+        if (updated) await user.save();
         return done(null, user);
       }
 
@@ -37,8 +48,12 @@ passport.use(new GoogleStrategy({
       const email = profile.emails[0].value;
       user = await User.findOne({ email });
       if (user) {
-        // Link googleId to existing user
+        // Link googleId and ensure CLIENT role
         user.googleId = profile.id;
+        user.provider = 'google';
+        if (!user.role.includes('CLIENT')) {
+          user.role.push('CLIENT');
+        }
         await user.save();
         return done(null, user);
       }
@@ -49,7 +64,7 @@ passport.use(new GoogleStrategy({
         name: profile.displayName || `${profile.name.givenName} ${profile.name.familyName}`,
         email: email,
         provider: 'google',
-        role: 'CLIENT' // Default role
+        role: ['CLIENT'] // Explicitly set as array
       });
 
       await newUser.save();
@@ -72,6 +87,17 @@ passport.use(new FacebookStrategy({
       // Check if user already exists in our db by facebookId
       let user = await User.findOne({ facebookId: profile.id });
       if (user) {
+        // Ensure CLIENT role exists and provider is set
+        let updated = false;
+        if (!user.role.includes('CLIENT')) {
+          user.role.push('CLIENT');
+          updated = true;
+        }
+        if (user.provider !== 'facebook') {
+          user.provider = 'facebook';
+          updated = true;
+        }
+        if (updated) await user.save();
         return done(null, user);
       }
 
@@ -79,8 +105,12 @@ passport.use(new FacebookStrategy({
       if (email) {
         user = await User.findOne({ email });
         if (user) {
-          // Link facebookId to existing user
+          // Link facebookId and ensure CLIENT role
           user.facebookId = profile.id;
+          user.provider = 'facebook';
+          if (!user.role.includes('CLIENT')) {
+            user.role.push('CLIENT');
+          }
           await user.save();
           return done(null, user);
         }
@@ -89,9 +119,9 @@ passport.use(new FacebookStrategy({
       const newUser = new User({
         facebookId: profile.id,
         name: profile.displayName || `${profile.name.givenName} ${profile.name.familyName}`,
-        email: email, // Note: Email logic might need adjustment if email is missing
+        email: email,
         provider: 'facebook',
-        role: 'ARTISAN' // logic from original code kept, but might want to standardize
+        role: ['CLIENT']
       });
 
       await newUser.save();

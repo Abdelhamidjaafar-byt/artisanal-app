@@ -39,11 +39,15 @@ const userSchema = new mongoose.Schema(
             type: String,
         },
         role: {
-            type: String,
-            enum: ["ADMIN", "ARTISAN", "CLIENT"], // Primary actors [cite: 44]
-            default: "CLIENT",
+            type: [String],
+            enum: ["ADMIN", "ARTISAN", "CLIENT"],
+            default: ["CLIENT"],
         },
-        // Specific fields for the Artisan profile [cite: 27, 51]
+        provider: {
+            type: String,
+            default: "local"
+        },
+        // Specific fields for the Artisan profile
         artisanProfile: {
             bio: { type: String },          // Savoir-faire / Expertise 
             specialties: [{ type: String }], // Craft types (e.g., Pottery) 

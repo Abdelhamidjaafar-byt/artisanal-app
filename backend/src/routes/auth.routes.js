@@ -14,7 +14,7 @@ const isAuthenticated = (req, res, next) => {
 router.get('/', (req, res) => {
   let userGreeting = 'Welcome, Guest!';
   if (req.isAuthenticated()) {
-    userGreeting = `Welcome, ${req.user.displayName}! (${req.user.role})`;
+    userGreeting = `Welcome, ${req.user.displayName}! (${req.user.role.join(', ')})`;
   }
   res.send(`
     <h1>Artisanal Platform</h1>
@@ -64,13 +64,15 @@ router.get('/profile', isAuthenticated, (req, res) => {
   let profileInfo = `
     <h2>Welcome to your profile, ${req.user.displayName}</h2>
     <p>Your ID: ${req.user.id}</p>
-    <p>Your Role: ${req.user.role}</p>
-    <p>Provider: ${req.user.provider}</p>
+    <p>Your Role: ${req.user.role.join(', ')}</p>
+    <p>Provider: ${req.user.provider || 'local'}</p>
   `;
 
-  if (req.user.role === 'Artisan') {
+  if (req.user.role.includes('ARTISAN')) {
     profileInfo += '<p>You have access to Artisan-specific features!</p>';
-  } else {
+  }
+
+  if (req.user.role.includes('CLIENT')) {
     profileInfo += '<p>You have access to Client-specific features.</p>';
   }
 
@@ -129,7 +131,7 @@ router.post('/signup', async (req, res, next) => {
       email: email,
       phone: phone,
       password: password, // In a real app, hash and salt this password
-      role: 'CLIENT' // Default
+      role: ['CLIENT'] // Default
     });
 
     await newUser.save();

@@ -10,7 +10,7 @@ export const authorize = (...roles) => {
         if (!req.isAuthenticated()) {
             return res.status(401).json({ message: "Not authenticated" });
         }
-        if (!roles.includes(req.user.role)) {
+        if (!roles.some(role => req.user.role.includes(role))) {
             return res.status(403).json({ message: "Access denied" });
         }
         next();
