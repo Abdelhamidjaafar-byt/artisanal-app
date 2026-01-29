@@ -64,62 +64,44 @@ router.post("/login", (req, res, next) => {
       });
     }
 
-    // Successful login
-    const token = generateToken(user);
-    return res.json({
-      message: "Login successful",
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
+    router.get('/auth/google/callback',
+      passport.authenticate('google', { failureRedirect: '/login' }),
+      (req, res) => {
+        // Successful authentication, redirect home.
+        res.redirect('/profile');
       }
+    );
+
+    // Facebook
+    router.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }));
+
+    router.get('/facebook/callback',
+      passport.authenticate('facebook', { failureRedirect: process.env.FRONTEND_URL + '/login', session: false }),
+      (req, res) => {
+        const token = generateToken(req.user);
+        res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?token=${token}&user=${encodeURIComponent(JSON.stringify({
+          id: req.user._id,
+          name: req.user.name || req.user.displayName,
+          email: req.user.email,
+          role: req.user.role
+        }))}`);
+      }
+    );
+
+    // --- Local Auth Route ---
+    router.post('/login/password',
+      passport.authenticate('local', { failureRedirect: '/login', failureFlash: true }),
+      (req, res) => {
+        res.redirect('/profile');
+      }
+    );
+
+    // --- Logout Route ---
+    router.get('/logout', (req, res, next) => {
+      req.logout(function (err) {
+        if (err) { return next(err); }
+        res.redirect('/');
+      });
     });
-  })(req, res, next);
-});
 
-// Google Auth
-router.get('/auth/google', 
-  passport.authenticate('google', { scope: ['profile', 'email'] })
-);
-
-router.get('/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: '/login', session: false }),
-  (req, res) => {
-    // Successful authentication, redirect to frontend with token
-    const token = generateToken(req.user);
-    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?token=${token}&user=${encodeURIComponent(JSON.stringify({
-      id: req.user._id,
-      name: req.user.name || req.user.displayName,
-      email: req.user.email,
-      role: req.user.role
-    }))}`);
-  }
-);
-
-// Facebook Auth
-router.get('/facebook', 
-  passport.authenticate('facebook', { scope: ['email'] })
-);
-
-router.get('/facebook/callback',
-  passport.authenticate('facebook', { failureRedirect: process.env.FRONTEND_URL + '/login', session: false }),
-  (req, res) => {
-    const token = generateToken(req.user);
-    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?token=${token}&user=${encodeURIComponent(JSON.stringify({
-      id: req.user._id,
-      name: req.user.name || req.user.displayName,
-      email: req.user.email,
-      role: req.user.role
-    }))}`);
-  }
-);
-
-// Logout Route
-router.get('/logout', (req, res) => {
-  // For JWT, logout is client-side (clearing token), but we can just return success
-  res.status(200).json({ message: 'Logged out successfully' });
-});
-
-export default router;
+    export default router;
