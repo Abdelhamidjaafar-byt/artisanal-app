@@ -7,13 +7,13 @@ import Marketplace from "./pages/Marketplace";
 import ArtisanDashboard from "./pages/artisan/Dashboard";
 import ProductForm from "./pages/artisan/ProductForm";
 import ProductDetails from "./pages/ProductDetails";
-import { MoveRight, Sparkles, Gem, ScrollText, History } from "lucide-react";
+import { MoveRight, Sparkles, Gem, ScrollText, History, Hammer } from "lucide-react";
 import { motion } from "framer-motion";
 
 const Home = () => (
   <div className="container py-16">
     <div className="grid lg:grid-cols-2 gap-16 items-center">
-      <motion.section 
+      <motion.section
         initial={{ opacity: 0, x: -30 }}
         animate={{ opacity: 1, x: 0 }}
         className="space-y-8"
@@ -26,7 +26,7 @@ const Home = () => (
           <span className="golden-text">Heritage.</span>
         </h1>
         <p className="text-text-muted text-xl max-w-lg leading-relaxed">
-          From the heart of the Medina to the modern world. Discover authentic Moroccan artisanry, 
+          From the heart of the Medina to the modern world. Discover authentic Moroccan artisanry,
           hand-forged by the finest masters of the North.
         </p>
         <div className="flex flex-col sm:flex-row items-center gap-6 pt-4">
@@ -39,7 +39,7 @@ const Home = () => (
         </div>
       </motion.section>
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 1 }}
@@ -48,19 +48,19 @@ const Home = () => (
         {/* Decorative Arch Frame */}
         <div className="absolute inset-0 border-8 border-primary/10 arch-frame translate-x-4 translate-y-4 group-hover:translate-x-2 group-hover:translate-y-2 transition-transform duration-500"></div>
         <div className="w-full h-full arch-frame bg-surface border border-primary/20 shadow-2xl overflow-hidden relative">
-            <div className="absolute inset-0 bg-[#1a1c22] opacity-40 mix-blend-overlay"></div>
-            {/* Pattern Overlay */}
-            <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'var(--zellige-pattern)', backgroundSize: '40px 40px' }}></div>
-            
-            <div className="absolute inset-0 flex items-center justify-center p-12 text-center flex-col">
-                <Gem size={80} className="text-primary/30 mb-6" />
-                <h3 className="heading text-4xl mb-4 italic text-primary/80">"L'art est le reflet de l'âme du peuple"</h3>
-                <p className="text-text-muted uppercase tracking-widest text-[10px]">Handcrafted in Marrakech • Fes • Chefchaouen</p>
-            </div>
-            
-            {/* Golden corner frames */}
-            <div className="absolute top-0 left-0 w-24 h-24 border-t-4 border-l-4 border-primary/40 rounded-tl-3xl"></div>
-            <div className="absolute bottom-0 right-0 w-24 h-24 border-b-4 border-r-4 border-primary/40 rounded-br-3xl"></div>
+          <div className="absolute inset-0 bg-[#1a1c22] opacity-40 mix-blend-overlay"></div>
+          {/* Pattern Overlay */}
+          <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'var(--zellige-pattern)', backgroundSize: '40px 40px' }}></div>
+
+          <div className="absolute inset-0 flex items-center justify-center p-12 text-center flex-col">
+            <Gem size={80} className="text-primary/30 mb-6" />
+            <h3 className="heading text-4xl mb-4 italic text-primary/80">"L'art est le reflet de l'âme du peuple"</h3>
+            <p className="text-text-muted uppercase tracking-widest text-[10px]">Handcrafted in Marrakech • Fes • Chefchaouen</p>
+          </div>
+
+          {/* Golden corner frames */}
+          <div className="absolute top-0 left-0 w-24 h-24 border-t-4 border-l-4 border-primary/40 rounded-tl-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-24 h-24 border-b-4 border-r-4 border-primary/40 rounded-br-3xl"></div>
         </div>
       </motion.div>
     </div>
@@ -71,7 +71,7 @@ const Home = () => (
         { title: "Zellige Tilework", desc: "Mathematical perfection in hand-cut geometric mosaics.", icon: <Sparkles size={32} /> },
         { title: "Hand-Hammered Brass", desc: "Intricate patterns forged in the souks of Fes.", icon: <Hammer size={32} /> }
       ].map((cat, i) => (
-        <motion.div 
+        <motion.div
           key={i}
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
