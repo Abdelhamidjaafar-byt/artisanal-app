@@ -3,6 +3,7 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 import { Strategy as LocalStrategy } from 'passport-local';
 import User from './models/User.js';
+import bcrypt from 'bcryptjs';
 
 // Passport serialization and deserialization
 passport.serializeUser((user, done) => {
@@ -113,9 +114,8 @@ passport.use(new LocalStrategy({
         return done(null, false, { message: 'Incorrect email.' });
       }
 
-      // Plain text check pending bcrypt integration
-      // Ideally: await bcrypt.compare(password, user.password)
-      if (user.password !== password) {
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
         return done(null, false, { message: 'Incorrect password.' });
       }
       return done(null, user);
