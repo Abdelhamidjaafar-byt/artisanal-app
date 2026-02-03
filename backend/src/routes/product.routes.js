@@ -7,7 +7,7 @@ import {
     deleteProduct,
 } from "../controllers/product.controller.js";
 
-import { isAuthenticated, authorize } from "../middlewares/auth.middleware.js";
+import { verifyToken, authorize } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
@@ -16,8 +16,8 @@ router.get("/", getProducts);
 router.get("/:id", getProductById);
 
 // Artisan only
-router.post("/", isAuthenticated, authorize("ARTISAN"), createProduct);
-router.put("/:id", isAuthenticated, authorize("ARTISAN"), updateProduct);
-router.delete("/:id", isAuthenticated, authorize("ARTISAN"), deleteProduct);
+router.post("/", verifyToken, authorize("ARTISAN"), createProduct);
+router.put("/:id", verifyToken, authorize("ARTISAN"), updateProduct);
+router.delete("/:id", verifyToken, authorize("ARTISAN"), deleteProduct);
 
 export default router;

@@ -3,18 +3,22 @@ import {
     createOrder,
     getMyOrders,
     getOrders,
-    updateOrderStatus
+    updateOrderStatus,
+    updateOrder,
+    deleteOrder
 } from "../controllers/order.controller.js";
-import { isAuthenticated, authorize } from "../middlewares/auth.middleware.js";
+import { verifyToken, authorize } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-// Client: Create order (or add to cart), Get my orders
-router.post("/", isAuthenticated, createOrder);
-router.get("/myorders", isAuthenticated, getMyOrders);
+// Client: Create order, Get my orders, Update/Delete own order
+router.post("/", verifyToken, createOrder);
+router.get("/myorders", verifyToken, getMyOrders);
+router.patch("/:id", verifyToken, updateOrder);
+router.delete("/:id", verifyToken, deleteOrder);
 
-// Admin/Artisan: Get all orders (filtered logic inside controller), Update status
-router.get("/", isAuthenticated, authorize("ADMIN", "ARTISAN"), getOrders);
-router.put("/:id/status", isAuthenticated, authorize("ADMIN", "ARTISAN"), updateOrderStatus);
+// Admin/Artisan: Get all orders, Update status
+router.get("/", verifyToken, authorize("ADMIN", "ARTISAN"), getOrders);
+router.put("/:id/status", verifyToken, authorize("ADMIN", "ARTISAN"), updateOrderStatus);
 
 export default router;

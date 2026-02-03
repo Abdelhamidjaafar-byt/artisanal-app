@@ -6,7 +6,14 @@ import { passport } from "./auth.js"; // Import passport from your auth.js
 import productRoutes from "./routes/product.routes.js";
 import authRoutes from "./routes/auth.routes.js"; // New auth routes file
 
+import morgan from "morgan";
+import { notFound, errorHandler } from "./middlewares/error.middleware.js";
+
 const app = express();
+
+if (process.env.NODE_ENV !== 'production') {
+  app.use(morgan('dev'));
+}
 
 app.use(cors());
 app.use(express.json());
@@ -30,12 +37,21 @@ app.use(passport.session());
 import orderRoutes from "./routes/order.routes.js";
 import reviewRoutes from "./routes/review.routes.js";
 
-app.use("/", authRoutes); // Use the new auth routes
+import authApiRoutes from "./routes/auth.api.routes.js"; // New auth API routes
+import userRoutes from "./routes/user.routes.js";
+
+app.use("/api/auth", authApiRoutes); // Mount new API auth routes
+app.use("/api/users", userRoutes);
+app.use("/", authRoutes); // Keep legacy auth routes for now
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
+
+// Error Handling Middlewares
+app.use(notFound);
+app.use(errorHandler);
 
 export default app;
