@@ -148,14 +148,24 @@ router.post('/signup', async (req, res, next) => {
 });
 
 // --- Google Auth Routes ---
-router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+const handleSocialCallback = (req, res) => {
+  const user = req.user;
+  if (user.role.includes("ADMIN")) {
+    return res.redirect("/admin/dashboard");
+  }
+  if (user.role.includes("ARTISAN")) {
+    if (!user.isApproved) {
+      return res.redirect("/waiting-approval");
+    }
+    return res.redirect("/artisan/dashboard");
+  }
+  // Default for CLIENT
+  res.redirect("/profile");
+};
 
 router.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/login' }),
-  (req, res) => {
-    // Successful authentication, redirect home.
-    res.redirect('/profile');
-  }
+  handleSocialCallback
 );
 
 // --- Facebook Auth Routes ---
@@ -163,18 +173,13 @@ router.get('/auth/facebook', passport.authenticate('facebook'));
 
 router.get('/auth/facebook/callback',
   passport.authenticate('facebook', { failureRedirect: '/login' }),
-  (req, res) => {
-    // Successful authentication, redirect home.
-    res.redirect('/profile');
-  }
+  handleSocialCallback
 );
 
 // --- Local Auth Route ---
 router.post('/login/password',
   passport.authenticate('local', { failureRedirect: '/login', failureFlash: true }),
-  (req, res) => {
-    res.redirect('/profile');
-  }
+  handleSocialCallback
 );
 
 // --- Logout Route ---

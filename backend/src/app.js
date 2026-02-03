@@ -39,9 +39,11 @@ import reviewRoutes from "./routes/review.routes.js";
 
 import authApiRoutes from "./routes/auth.api.routes.js"; // New auth API routes
 import userRoutes from "./routes/user.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
 
 app.use("/api/auth", authApiRoutes); // Mount new API auth routes
 app.use("/api/users", userRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/", authRoutes); // Keep legacy auth routes for now
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);

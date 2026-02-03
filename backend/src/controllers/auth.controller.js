@@ -5,11 +5,11 @@ import jwt from "jsonwebtoken";
 // REGISTER
 export const register = async (req, res, next) => {
     try {
-        const { name, email, password, role } = req.body;
+        const { name, username, email, password, role } = req.body;
 
-        if (!name || !email || !password) {
+        if (!name || !username || !email || !password) {
             res.status(400);
-            throw new Error("Please provide name, email and password");
+            throw new Error("Please provide name, username, email and password");
         }
 
         const userExists = await User.findOne({ email });
@@ -18,13 +18,22 @@ export const register = async (req, res, next) => {
             throw new Error("User already exists");
         }
 
+        const usernameExists = await User.findOne({ username });
+        if (usernameExists) {
+            res.status(400);
+            throw new Error("Username already taken");
+        }
+
         const hashedPassword = await bcrypt.hash(password, 10);
+
+        const roles = role ? [role.toUpperCase()] : ["CLIENT"];
 
         const user = await User.create({
             name,
+            username,
             email,
             password: hashedPassword,
-            role,
+            role: roles,
         });
 
         res.status(201).json({
@@ -34,6 +43,7 @@ export const register = async (req, res, next) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                isApproved: user.isApproved
             },
         });
     } catch (error) {
@@ -53,30 +63,31 @@ export const login = async (req, res, next) => {
 
         const user = await User.findOne({ email });
         if (!user) {
-            res.status(400);
-            throw new Error("Invalid credentials");
+            res.status(401);
+            throw new Error("Invalid email or password");
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            res.status(400);
-            throw new Error("Invalid credentials");
+        const isPasswordCorrect = await bcrypt.compare(password, user.password);
+        if (!isPasswordCorrect) {
+            res.status(401);
+            throw new Error("Invalid email or password");
         }
 
         const token = jwt.sign(
             { id: user._id, role: user.role },
             process.env.JWT_SECRET,
-            { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
-
+            { expiresIn: "7d" }
         );
 
-        res.json({
+        res.status(200).json({
+            message: "Login successful",
             token,
             user: {
                 id: user._id,
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                isApproved: user.isApproved
             },
         });
     } catch (error) {

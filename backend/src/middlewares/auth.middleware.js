@@ -8,16 +8,38 @@ export const isAuthenticated = (req, res, next) => {
     res.status(401).json({ message: "Not authenticated" });
 };
 
+// Middleware to authorize roles
 export const authorize = (...roles) => {
     return (req, res, next) => {
-        if (!req.user) {
-            return res.status(401).json({ message: "Not authenticated" });
-        }
-        if (!roles.some(role => req.user.role.includes(role))) {
-            return res.status(403).json({ message: "Access denied" });
+        if (!req.user || !roles.some(role => req.user.role.includes(role))) {
+            res.status(403);
+            return next(new Error("Access Denied. You do not have the required role."));
         }
         next();
     };
+};
+
+// Middleware to check if user is approved (for artisans)
+export const checkApproved = async (req, res, next) => {
+    try {
+        // Find user to get the latest isApproved status
+        const user = await import("../models/User.js").then(m => m.default.findById(req.user.id));
+
+        if (!user) {
+            res.status(404);
+            throw new Error("User not found");
+        }
+
+        // If user is artisan but not approved, block access
+        if (user.role.includes("ARTISAN") && !user.isApproved) {
+            res.status(403);
+            throw new Error("Account not approved. Please wait for admin approval.");
+        }
+
+        next();
+    } catch (error) {
+        next(error);
+    }
 };
 
 export const verifyToken = (req, res, next) => {

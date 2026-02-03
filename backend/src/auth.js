@@ -64,9 +64,10 @@ passport.use(new GoogleStrategy({
       const newUser = new User({
         googleId: profile.id,
         name: profile.displayName || `${profile.name.givenName} ${profile.name.familyName}`,
+        username: email.split('@')[0] + "_" + profile.id.substring(0, 5), // Generate a username
         email: email,
         provider: 'google',
-        role: ['CLIENT'] // Explicitly set as array
+        role: ['CLIENT'] // Default to CLIENT for social logins
       });
 
       await newUser.save();
@@ -104,6 +105,8 @@ passport.use(new FacebookStrategy({
       }
 
       const email = profile.emails ? profile.emails[0].value : undefined;
+      const username = email ? email.split('@')[0] + "_" + profile.id.substring(0, 5) : "fb_" + profile.id;
+
       if (email) {
         user = await User.findOne({ email });
         if (user) {
@@ -121,6 +124,7 @@ passport.use(new FacebookStrategy({
       const newUser = new User({
         facebookId: profile.id,
         name: profile.displayName || `${profile.name.givenName} ${profile.name.familyName}`,
+        username: username,
         email: email,
         provider: 'facebook',
         role: ['CLIENT']
