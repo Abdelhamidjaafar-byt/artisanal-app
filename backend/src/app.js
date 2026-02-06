@@ -1,5 +1,8 @@
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
+import mongoSanitize from "express-mongo-sanitize";
+import xss from "xss-clean";
 import session from 'express-session';
 import flash from 'connect-flash';
 import { passport } from "./auth.js"; // Import passport from your auth.js
@@ -15,9 +18,16 @@ if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
 }
 
+app.use(helmet());
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Data sanitization against NoSQL query injection
+app.use(mongoSanitize());
+
+// Data sanitization against XSS
+app.use(xss());
 
 // Express Session
 app.use(session({
@@ -40,10 +50,14 @@ import reviewRoutes from "./routes/review.routes.js";
 import authApiRoutes from "./routes/auth.api.routes.js"; // New auth API routes
 import userRoutes from "./routes/user.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
+import customRequestRoutes from "./routes/customRequest.routes.js";
+import messageRoutes from "./routes/message.routes.js";
 
 app.use("/api/auth", authApiRoutes); // Mount new API auth routes
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/custom-requests", customRequestRoutes);
+app.use("/api/messages", messageRoutes);
 app.use("/", authRoutes); // Keep legacy auth routes for now
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
