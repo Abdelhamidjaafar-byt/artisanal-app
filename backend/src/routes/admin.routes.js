@@ -1,38 +1,14 @@
 import express from "express";
-import User from "../models/User.js";
-import Order from "../models/Order.js";
-import Product from "../models/Product.js";
-import { isAuthenticated as auth, authorize as role } from "../middlewares/auth.middleware.js";
+import { approveArtisan, getPendingArtisans } from "../controllers/admin.controller.js";
+import { verifyToken, authorize } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-// Get Platform Stats
-router.get("/stats", auth, role("ADMIN"), async (req, res) => {
-    try {
-        const artisanCount = await User.countDocuments({ role: "ARTISAN" });
-        const clientCount = await User.countDocuments({ role: "CLIENT" });
-        const productCount = await Product.countDocuments();
-        const orderCount = await Order.countDocuments();
+// All admin routes are protected by verifyToken and require ADMIN role
+router.use(verifyToken);
+router.use(authorize("ADMIN"));
 
-        res.json({
-            artisans: artisanCount,
-            clients: clientCount,
-            products: productCount,
-            orders: orderCount
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-
-// Get All Artisans
-router.get("/artisans", auth, role("ADMIN"), async (req, res) => {
-    try {
-        const artisans = await User.find({ role: "ARTISAN" }).select("-password");
-        res.json(artisans);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
+router.patch("/approve/:id", approveArtisan);
+router.get("/pending-artisans", getPendingArtisans);
 
 export default router;

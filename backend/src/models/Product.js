@@ -44,7 +44,8 @@ const productSchema = new mongoose.Schema(
                 "Leather Goods",
                 "Zellige",
                 "Ironwork",
-                "Tanning"
+                "Tanning",
+
             ], // Categories translated from the requirements 
         },
         isCustomizable: {

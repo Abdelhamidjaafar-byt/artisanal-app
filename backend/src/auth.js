@@ -4,6 +4,8 @@ import { Strategy as FacebookStrategy } from 'passport-facebook';
 import { Strategy as LocalStrategy } from 'passport-local';
 import User from './models/User.js';
 import bcrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs';
+
 
 // Passport serialization and deserialization
 passport.serializeUser((user, done) => {
@@ -30,6 +32,17 @@ passport.use(new GoogleStrategy({
       // Check if user already exists in our db by googleId
       let user = await User.findOne({ googleId: profile.id });
       if (user) {
+        // Ensure CLIENT role exists and provider is set
+        let updated = false;
+        if (!user.role.includes('CLIENT')) {
+          user.role.push('CLIENT');
+          updated = true;
+        }
+        if (user.provider !== 'google') {
+          user.provider = 'google';
+          updated = true;
+        }
+        if (updated) await user.save();
         return done(null, user);
       }
 
@@ -37,8 +50,12 @@ passport.use(new GoogleStrategy({
       const email = profile.emails[0].value;
       user = await User.findOne({ email });
       if (user) {
-        // Link googleId to existing user
+        // Link googleId and ensure CLIENT role
         user.googleId = profile.id;
+        user.provider = 'google';
+        if (!user.role.includes('CLIENT')) {
+          user.role.push('CLIENT');
+        }
         await user.save();
         return done(null, user);
       }
@@ -47,9 +64,10 @@ passport.use(new GoogleStrategy({
       const newUser = new User({
         googleId: profile.id,
         name: profile.displayName || `${profile.name.givenName} ${profile.name.familyName}`,
+        username: email.split('@')[0] + "_" + profile.id.substring(0, 5), // Generate a username
         email: email,
         provider: 'google',
-        role: 'CLIENT' // Default role
+        role: ['CLIENT'] // Default to CLIENT for social logins
       });
 
       await newUser.save();
@@ -72,15 +90,32 @@ passport.use(new FacebookStrategy({
       // Check if user already exists in our db by facebookId
       let user = await User.findOne({ facebookId: profile.id });
       if (user) {
+        // Ensure CLIENT role exists and provider is set
+        let updated = false;
+        if (!user.role.includes('CLIENT')) {
+          user.role.push('CLIENT');
+          updated = true;
+        }
+        if (user.provider !== 'facebook') {
+          user.provider = 'facebook';
+          updated = true;
+        }
+        if (updated) await user.save();
         return done(null, user);
       }
 
       const email = profile.emails ? profile.emails[0].value : undefined;
+      const username = email ? email.split('@')[0] + "_" + profile.id.substring(0, 5) : "fb_" + profile.id;
+
       if (email) {
         user = await User.findOne({ email });
         if (user) {
-          // Link facebookId to existing user
+          // Link facebookId and ensure CLIENT role
           user.facebookId = profile.id;
+          user.provider = 'facebook';
+          if (!user.role.includes('CLIENT')) {
+            user.role.push('CLIENT');
+          }
           await user.save();
           return done(null, user);
         }
@@ -89,9 +124,10 @@ passport.use(new FacebookStrategy({
       const newUser = new User({
         facebookId: profile.id,
         name: profile.displayName || `${profile.name.givenName} ${profile.name.familyName}`,
-        email: email, // Note: Email logic might need adjustment if email is missing
+        username: username,
+        email: email,
         provider: 'facebook',
-        role: 'ARTISAN' // logic from original code kept, but might want to standardize
+        role: ['CLIENT']
       });
 
       await newUser.save();

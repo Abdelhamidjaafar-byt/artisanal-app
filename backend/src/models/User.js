@@ -7,6 +7,12 @@ const userSchema = new mongoose.Schema(
             required: true,
             trim: true,
         },
+        username: {
+            type: String,
+            unique: true,
+            sparse: true, // For social login users who might not have a username initially
+            trim: true,
+        },
         email: {
             type: String,
             required: function () {
@@ -16,6 +22,7 @@ const userSchema = new mongoose.Schema(
             sparse: true,
             lowercase: true,
         },
+
         password: {
             type: String,
             required: function () {
@@ -39,11 +46,27 @@ const userSchema = new mongoose.Schema(
             type: String,
         },
         role: {
-            type: String,
-            enum: ["ADMIN", "ARTISAN", "CLIENT"], // Primary actors [cite: 44]
-            default: "CLIENT",
+            type: [String],
+            enum: ["ADMIN", "ARTISAN", "CLIENT"],
+            default: ["CLIENT"],
         },
-        // Specific fields for the Artisan profile [cite: 27, 51]
+        isApproved: {
+            type: Boolean,
+            default: function () {
+                // If the user only has CLIENT role, approve by default
+                if (this.role.length === 1 && this.role.includes("CLIENT")) {
+                    return true;
+                }
+                // Admin is approved, Artisans are NOT by default
+                if (this.role.includes("ADMIN")) return true;
+                return false;
+            }
+        },
+        provider: {
+            type: String,
+            default: "local"
+        },
+        // Specific fields for the Artisan profile
         artisanProfile: {
             bio: { type: String },          // Savoir-faire / Expertise 
             specialties: [{ type: String }], // Craft types (e.g., Pottery) 

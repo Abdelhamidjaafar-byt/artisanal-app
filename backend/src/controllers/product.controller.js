@@ -1,7 +1,7 @@
 import Product from "../models/Product.js";
 
 // CREATE PRODUCT (ARTISAN)
-export const createProduct = async (req, res) => {
+export const createProduct = async (req, res, next) => {
     try {
         const images = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
 
@@ -13,12 +13,12 @@ export const createProduct = async (req, res) => {
 
         res.status(201).json(product);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
 // GET ALL PRODUCTS (PUBLIC)
-export const getProducts = async (req, res) => {
+export const getProducts = async (req, res, next) => {
     try {
         const { category } = req.query;
         let query = {};
@@ -33,37 +33,40 @@ export const getProducts = async (req, res) => {
 
         res.json(products);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
 // GET SINGLE PRODUCT
-export const getProductById = async (req, res) => {
+export const getProductById = async (req, res, next) => {
     try {
         const product = await Product.findById(req.params.id)
             .populate("artisan", "name email");
 
         if (!product) {
-            return res.status(404).json({ message: "Product not found" });
+            res.status(404);
+            throw new Error("Product not found");
         }
 
         res.json(product);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
 // UPDATE PRODUCT (OWNER ONLY)
-export const updateProduct = async (req, res) => {
+export const updateProduct = async (req, res, next) => {
     try {
         const product = await Product.findById(req.params.id);
 
         if (!product) {
-            return res.status(404).json({ message: "Product not found" });
+            res.status(404);
+            throw new Error("Product not found");
         }
 
         if (product.artisan.toString() !== req.user.id) {
-            return res.status(403).json({ message: "Not authorized" });
+            res.status(403);
+            throw new Error("Not authorized");
         }
 
         const images = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
@@ -77,26 +80,28 @@ export const updateProduct = async (req, res) => {
 
         res.json(product);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
 // DELETE PRODUCT (OWNER ONLY)
-export const deleteProduct = async (req, res) => {
+export const deleteProduct = async (req, res, next) => {
     try {
         const product = await Product.findById(req.params.id);
 
         if (!product) {
-            return res.status(404).json({ message: "Product not found" });
+            res.status(404);
+            throw new Error("Product not found");
         }
 
         if (product.artisan.toString() !== req.user.id) {
-            return res.status(403).json({ message: "Not authorized" });
+            res.status(403);
+            throw new Error("Not authorized");
         }
 
         await product.deleteOne();
         res.json({ message: "Product deleted" });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
