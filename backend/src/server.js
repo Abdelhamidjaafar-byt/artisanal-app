@@ -13,7 +13,7 @@ import socketHandler from "./socket.js";
 const server = http.createServer(app);
 socketHandler(server);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
 connectDB();
 
