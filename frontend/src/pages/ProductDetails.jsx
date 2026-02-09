@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "../lib/api";
 import { motion } from "framer-motion";
 import { ArrowLeft, ShoppingCart, Sparkles, Clock, ShieldCheck, MapPin } from "lucide-react";
+import CheckoutButton from "../components/CheckoutButton";
 
 const ProductDetails = () => {
     const { id } = useParams();
@@ -30,7 +31,7 @@ const ProductDetails = () => {
 
     return (
         <div className="container py-12">
-            <button 
+            <button
                 onClick={() => navigate("/marketplace")}
                 className="flex items-center gap-2 text-text-muted hover:text-primary transition-colors mb-12 group uppercase tracking-widest text-xs font-bold"
             >
@@ -39,7 +40,7 @@ const ProductDetails = () => {
 
             <div className="grid lg:grid-cols-2 gap-16">
                 {/* Visual Section */}
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     className="space-y-6"
@@ -50,23 +51,23 @@ const ProductDetails = () => {
                             <Sparkles className="text-primary/10" size={120} />
                         </div>
                         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-background/80 backdrop-blur-xl border border-white/5 px-6 py-3 rounded-full flex items-center gap-3">
-                             <div className="w-2 h-2 rounded-full bg-emerald animate-pulse"></div>
-                             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Genuine Craftsmanship</span>
+                            <div className="w-2 h-2 rounded-full bg-emerald animate-pulse"></div>
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Genuine Craftsmanship</span>
                         </div>
                     </div>
                 </motion.div>
 
                 {/* Info Section */}
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     className="space-y-8"
                 >
                     <div className="space-y-4">
                         <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-1.5 rounded-full text-[9px] font-black tracking-[0.2em] border border-primary/20 text-primary uppercase">
-                            {product.category} Collection
+                            {product.category || "General"} Collection
                         </div>
-                        <h1 className="text-5xl md:text-7xl font-black heading leading-tight">{product.title}</h1>
+                        <h1 className="text-5xl md:text-7xl font-black heading leading-tight">{product.title || product.name || "Untitled Masterpiece"}</h1>
                         <div className="flex items-center gap-3 text-text-muted text-sm border-l-2 border-primary pl-4">
                             <MapPin size={16} className="text-primary" />
                             <span className="uppercase tracking-[0.1em] font-bold">Artisan Master: {product.artisan?.name}</span>
@@ -98,9 +99,11 @@ const ProductDetails = () => {
                             <div className="flex items-center gap-2"><ShieldCheck size={16} className="text-primary" /> Guild Verified</div>
                         </div>
 
-                        <button className="w-full bg-primary text-white py-6 rounded-2xl font-black flex items-center justify-center gap-4 hover:shadow-[0_0_40px_rgba(230,126,34,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-[0.3em] text-sm mt-4">
-                            Acquire Masterpiece <ShoppingCart size={20} />
-                        </button>
+                        <CheckoutButton
+                            productId={product._id}
+                            price={product.price}
+                            customizationDetails={product.customizable ? "Standard Customization" : ""}
+                        />
                     </div>
 
                     <div className="bg-surface/50 border border-border p-6 rounded-2xl">
@@ -108,7 +111,7 @@ const ProductDetails = () => {
                             <Sparkles size={14} className="text-primary" /> Artisan's Note
                         </h4>
                         <p className="text-xs text-text-muted italic leading-relaxed">
-                            This piece is part of the sacred heritage of Moroccan {product.category.toLowerCase()}. 
+                            This piece is part of the sacred heritage of Moroccan {product.category.toLowerCase()}.
                             Every subtle imperfection is a signature of its unique soul.
                         </p>
                     </div>

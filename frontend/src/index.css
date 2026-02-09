@@ -1,25 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
 
 :root {
-  /* Moroccan Artisan Palette */
   --primary: #e67e22;
-  /* Terracotta / Saffron */
   --primary-hover: #d35400;
   --majorelle: #6050dc;
-  /* Majorelle Blue */
   --saffron: #f1c40f;
   --background: #0d0e12;
-  /* Deep carbon base */
   --surface: #15171c;
-  /* Night Riad Surface */
   --surface-hover: #1c1f26;
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --border: #2d343f;
-
   --emerald: #27ae60;
-  /* Moroccan Tile Green */
-
   --glass: rgba(21, 23, 28, 0.8);
   --glass-border: rgba(255, 255, 255, 0.05);
 
@@ -45,69 +37,106 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1,
-h2,
-h3,
-.heading {
+h1, h2, h3, .heading {
   font-family: 'Playfair Display', serif;
 }
 
-/* Moorish Arch framing */
-.arch-frame {
-  border-radius: 50% 50% 12px 12px / 40% 40% 12px 12px;
-  overflow: hidden;
-  position: relative;
-}
+/* Core Layout Utilities */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-grow { flex-grow: 1; }
+.items-center { align-items: center; }
+.items-end { align-items: flex-end; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.grid { display: grid; }
+.grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 768px) { .md\:grid-cols-3 { grid-template-columns: repeat(1, minmax(0, 1fr)); } }
+.lg\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 1024px) { .lg\:grid-cols-2 { grid-template-columns: repeat(1, minmax(0, 1fr)); } }
 
-/* Glassmorphism with character */
-.glass {
-  background: var(--glass);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-border);
-}
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; }
+.gap-6 { gap: 1.5rem; }
+.gap-8 { gap: 2rem; }
+.gap-10 { gap: 2.5rem; }
+.gap-16 { gap: 4rem; }
 
-.golden-text {
-  background: linear-gradient(to right, #e67e22, #f1c40f, #e67e22);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
+.hidden { display: none; }
+.md\:flex { display: flex; }
+@media (max-width: 768px) { .md\:flex { display: none; } }
+.md\:hidden { display: none; }
+@media (max-width: 768px) { .md\:hidden { display: block; } }
 
-/* Zellige card styling */
-.zellige-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  position: relative;
-  overflow: hidden;
-}
+/* Spacing Utilities */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+.py-5 { padding-top: 1.25rem; padding-bottom: 1.25rem; }
+.py-16 { padding-top: 4rem; padding-bottom: 4rem; }
+.px-5 { padding-left: 1.25rem; padding-right: 1.25rem; }
+.px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+.px-8 { padding-left: 2rem; padding-right: 2rem; }
+.p-2 { padding: 0.5rem; }
+.p-3 { padding: 0.75rem; }
+.p-4 { padding: 1rem; }
+.p-10 { padding: 2.5rem; }
+.mt-48 { margin-top: 12rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mb-10 { margin-bottom: 2.5rem; }
 
-.zellige-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(to right, var(--primary), var(--majorelle));
-}
+/* Visual Classes */
+.bg-primary { background-color: var(--primary); }
+.bg-majorelle { background-color: var(--majorelle); }
+.bg-surface { background-color: var(--surface); }
+.bg-surface\/50 { background-color: rgba(21, 23, 28, 0.5); }
+.bg-primary\/10 { background-color: rgba(230, 126, 34, 0.1); }
+.bg-background\/50 { background-color: rgba(13, 14, 18, 0.5); }
+.border { border: 1px solid var(--border); }
+.border-b { border-bottom: 1px solid var(--border); }
+.border-primary { border-color: var(--primary); }
+.border-primary\/20 { border-color: rgba(230, 126, 34, 0.2); }
+.border-white\/5 { border-color: rgba(255, 255, 255, 0.05); }
+.border-white\/10 { border-color: rgba(255, 255, 255, 0.1); }
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
-}
+.rounded-xl { border-radius: 0.75rem; }
+.rounded-2xl { border-radius: 1rem; }
+.rounded-3xl { border-radius: 1.5rem; }
+.rounded-full { border-radius: 9999px; }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
+.shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+.shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
 
-::-webkit-scrollbar-track {
-  background: var(--background);
-}
+/* Typography */
+.text-white { color: #ffffff; }
+.text-primary { color: var(--primary); }
+.text-majorelle { color: var(--majorelle); }
+.text-text-muted { color: var(--text-muted); }
+.text-xs { font-size: 0.75rem; }
+.text-sm { font-size: 0.875rem; }
+.text-xl { font-size: 1.25rem; }
+.text-2xl { font-size: 1.5rem; }
+.text-3xl { font-size: 1.875rem; }
+.text-4xl { font-size: 2.25rem; }
+.text-7xl { font-size: 4.5rem; }
+.font-bold { font-weight: 700; }
+.font-black { font-weight: 900; }
+.uppercase { text-transform: uppercase; }
+.tracking-widest { letter-spacing: 0.1em; }
+.tracking-tight { letter-spacing: -0.025em; }
+.tracking-tighter { letter-spacing: -0.05em; }
 
-::-webkit-scrollbar-thumb {
-  background: var(--primary);
-  border-radius: 10px;
-}
+/* Custom Effects */
+.glass { background: var(--glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--glass-border); }
+.golden-text { background: linear-gradient(to right, #e67e22, #f1c40f, #e67e22); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.arch-frame { border-radius: 50% 50% 12px 12px / 40% 40% 12px 12px; overflow: hidden; position: relative; }
+.zellige-card { background: var(--surface); border: 1px solid var(--border); position: relative; overflow: hidden; }
+.zellige-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(to right, var(--primary), var(--majorelle)); }
+
+.sticky { position: sticky; }
+.top-0 { top: 0; }
+.z-50 { z-index: 50; }

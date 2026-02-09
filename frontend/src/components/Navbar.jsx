@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Compass, Hammer, LogOut, Menu, User } from "lucide-react";
+import { Compass, Hammer, LogOut, Menu, User, LogIn, UserPlus } from "lucide-react";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -43,22 +43,30 @@ const Navbar = () => {
                 <span className="text-sm font-medium">{user.name}</span>
               </div>
               <div className="flex items-center gap-2">
-                 <button className="p-2 bg-surface rounded-lg hover:text-primary transition-colors">
-                    <User size={18} />
-                 </button>
-                 <button 
-                    onClick={handleLogout}
-                    className="p-2 bg-surface rounded-lg hover:text-red-500 transition-colors"
-                  >
-                    <LogOut size={18} />
-                  </button>
+                <button className="p-2 bg-surface rounded-lg hover:text-primary transition-colors">
+                  <User size={18} />
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-4 py-2 bg-surface/50 border border-white/5 rounded-xl hover:text-red-500 hover:bg-red-500/10 transition-all text-xs font-black uppercase tracking-widest"
+                >
+                  <LogOut size={16} /> Logout
+                </button>
               </div>
             </div>
           ) : (
             <div className="flex items-center gap-6">
-              <Link to="/login" className="text-sm font-bold hover:text-primary transition-colors uppercase tracking-widest">Login</Link>
-              <Link to="/register" className="bg-primary text-white px-8 py-3 rounded-xl text-sm font-bold shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all uppercase tracking-widest">
-                Join Guild
+              <Link
+                to="/login"
+                className="text-sm font-black hover:text-primary transition-colors uppercase tracking-widest flex items-center gap-2"
+              >
+                <LogIn size={16} /> Login
+              </Link>
+              <Link
+                to="/register"
+                className="bg-primary text-white px-8 py-3 rounded-xl text-sm font-black shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all uppercase tracking-widest flex items-center gap-2"
+              >
+                <UserPlus size={16} /> Register
               </Link>
             </div>
           )}

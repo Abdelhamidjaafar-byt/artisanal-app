@@ -41,8 +41,8 @@ const Login = () => {
                         <div className="inline-flex p-3 bg-primary/10 rounded-2xl mb-4">
                             <Compass className="text-primary" size={32} />
                         </div>
-                        <h2 className="text-4xl font-black heading golden-text mb-3">Riad Entrance</h2>
-                        <p className="text-text-muted text-sm uppercase tracking-widest font-bold">Return to the Medina</p>
+                        <h2 className="text-4xl font-black heading golden-text mb-3">Login</h2>
+                        <p className="text-text-muted text-sm uppercase tracking-widest font-bold">Welcome back to the Medina</p>
                     </div>
 
                     {error && (
@@ -58,7 +58,7 @@ const Login = () => {
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Merchant Email</label>
+                            <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Email Address</label>
                             <div className="relative group">
                                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" size={18} />
                                 <input
@@ -73,7 +73,7 @@ const Login = () => {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Guild Secret</label>
+                            <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Password</label>
                             <div className="relative group">
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" size={18} />
                                 <input
@@ -92,8 +92,8 @@ const Login = () => {
                             disabled={isLoading}
                             className="w-full bg-primary text-white py-5 rounded-xl font-black flex items-center justify-center gap-3 hover:shadow-[0_0_25px_rgba(230,126,34,0.3)] disabled:opacity-50 transition-all uppercase tracking-[0.2em] text-xs mt-4"
                         >
-                            {isLoading ? "Consulting Masters..." : (
-                                <>Enter the Guild <LogIn size={18} /></>
+                            {isLoading ? "Logging in..." : (
+                                <>Log In <LogIn size={18} /></>
                             )}
                         </button>
                     </form>
@@ -133,8 +133,8 @@ const Login = () => {
 
                     <div className="mt-10 text-center text-xs font-bold text-text-muted uppercase tracking-widest">
                         New to the Souk?{" "}
-                        <Link to="/register" className="text-primary hover:text-primary-hover underline underline-offset-4">
-                            Apply for Membership
+                        <Link to="/register" className="text-primary hover:text-primary-hover underline underline-offset-4 decoration-2">
+                            Create a New Account
                         </Link>
                     </div>
                 </div>

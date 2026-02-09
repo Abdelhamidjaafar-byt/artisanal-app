@@ -22,12 +22,11 @@ const validate = (req, res, next) => {
 };
 
 const orderValidation = [
-    body("orderItems").isArray({ min: 1 }).withMessage("Order items must be an array and not empty"),
-    body("orderItems.*.product").notEmpty().withMessage("Product ID is required"),
-    body("orderItems.*.quantity").isInt({ min: 1 }).withMessage("Quantity must be at least 1"),
+    body("items").isArray({ min: 1 }).withMessage("Items must be an array and not empty"),
+    body("items.*.product").notEmpty().withMessage("Product ID is required"),
+    body("items.*.quantity").isInt({ min: 1 }).withMessage("Quantity must be at least 1"),
     body("shippingAddress").notEmpty().withMessage("Shipping address is required"),
-    body("paymentMethod").notEmpty().withMessage("Payment method is required"),
-    body("mobileNumber").notEmpty().withMessage("Mobile number is required"),
+    body("paymentInfo.method").notEmpty().withMessage("Payment method is required"),
     validate
 ];
 

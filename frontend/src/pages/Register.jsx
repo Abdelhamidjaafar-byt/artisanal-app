@@ -75,7 +75,7 @@ const Register = () => {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Noble Name</label>
+                            <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Full Name</label>
                             <div className="relative group">
                                 <User className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" size={18} />
                                 <input
@@ -90,7 +90,7 @@ const Register = () => {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Medina Email</label>
+                            <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Email Address</label>
                             <div className="relative group">
                                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" size={18} />
                                 <input
@@ -105,7 +105,7 @@ const Register = () => {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Secret Key</label>
+                            <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Password</label>
                             <div className="relative group">
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" size={18} />
                                 <input
@@ -124,8 +124,8 @@ const Register = () => {
                             disabled={isLoading}
                             className={`w-full ${formData.role === "ARTISAN" ? "bg-majorelle" : "bg-primary"} text-white py-5 rounded-xl font-black flex items-center justify-center gap-3 hover:brightness-110 disabled:opacity-50 transition-all uppercase tracking-[0.2em] text-xs mt-4 shadow-xl`}
                         >
-                            {isLoading ? "Consulting Elders..." : (
-                                <>Inscribe into History <UserPlus size={18} /></>
+                            {isLoading ? "Creating Account..." : (
+                                <>Create Account <UserPlus size={18} /></>
                             )}
                         </button>
                     </form>

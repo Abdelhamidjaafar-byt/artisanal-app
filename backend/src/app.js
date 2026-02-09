@@ -20,8 +20,22 @@ if (process.env.NODE_ENV !== 'production') {
 
 app.use(helmet());
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Special handling for Stripe Webhook to keep raw body
+app.use((req, res, next) => {
+  if (req.originalUrl === "/api/stripe/webhook") {
+    next();
+  } else {
+    express.json()(req, res, next);
+  }
+});
+
+app.use((req, res, next) => {
+  if (req.originalUrl === "/api/stripe/webhook") {
+    next();
+  } else {
+    express.urlencoded({ extended: true })(req, res, next);
+  }
+});
 
 // Data sanitization against NoSQL query injection
 app.use(mongoSanitize());
@@ -53,6 +67,9 @@ import adminRoutes from "./routes/admin.routes.js";
 import customRequestRoutes from "./routes/customRequest.routes.js";
 import messageRoutes from "./routes/message.routes.js";
 
+import stripeRoutes from "./routes/stripe.routes.js";
+
+app.use("/api/stripe", stripeRoutes);
 app.use("/api/auth", authApiRoutes); // Mount new API auth routes
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);

@@ -7,6 +7,9 @@ import Marketplace from "./pages/Marketplace";
 import ArtisanDashboard from "./pages/artisan/Dashboard";
 import ProductForm from "./pages/artisan/ProductForm";
 import ProductDetails from "./pages/ProductDetails";
+import LoginSuccess from "./pages/LoginSuccess";
+import OrderSuccess from "./pages/OrderSuccess";
+import OrderCancel from "./pages/OrderCancel";
 import { MoveRight, Sparkles, Gem, ScrollText, History, Hammer } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -87,6 +90,8 @@ const Home = () => (
   </div>
 );
 
+
+
 const AppContent = () => {
   return (
     <div className="min-h-screen">
@@ -100,6 +105,9 @@ const AppContent = () => {
         <Route path="/artisan/dashboard" element={<ArtisanDashboard />} />
         <Route path="/artisan/product/new" element={<ProductForm />} />
         <Route path="/artisan/product/edit/:id" element={<ProductForm />} />
+        <Route path="/order-success" element={<OrderSuccess />} />
+        <Route path="/order-cancel" element={<OrderCancel />} />
+        <Route path="/login-success" element={<LoginSuccess />} />
       </Routes>
     </div>
   );
