@@ -15,17 +15,18 @@ const Navbar: React.FC = () => {
   };
 
   return (
-    <nav className="bg-pink border-b border-orange-100 sticky top-0 z-50">
+    <nav className=" border-b border-orange-100 sticky top-0 z-50" style={{ backgroundColor: '#c9a6787a' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20">
           <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0 flex items-center gap-2"><div className="w-16 h-16  moorish-arch flex items-center justify-center border-2 border-[#d48a24]/30 shadow-xl group-hover:scale-110 transition-all duration-500 overflow-hidden">
-              <img
-                src="../assets/DAR.png"
-                alt="Logo Dar Sanعa"
-                className="w-full h-full object-cover"
-              />
-            </div>
+            <Link to="/" className="flex-shrink-0 flex items-center gap-2" >
+              <div className="w-16 h-16  moorish-arch flex items-center justify-center border-2 border-[#d48a24]/30 shadow-xl group-hover:scale-110 transition-all duration-500 overflow-hidden">
+                <img
+                  src="../assets/DAR.png"
+                  alt="Logo Dar Sanعa"
+                  className="w-full h-full object-cover"
+                />
+              </div>
               <div className="w-70 h-20  flex items-center justify-center  group-hover:scale-110 transition-all duration-500 overflow-hidden">
                 <img
                   src="../assets/DAR 2.png"

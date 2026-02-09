@@ -16,13 +16,24 @@ const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 };
 
 const Footer = () => (
-  <footer className="bg-white border-t border-orange-100 py-12 mt-20">
+  <footer className="bg-white border-t border-orange-100 py-12 mt-20" style={{ backgroundColor: '#c9a6787a' }}>
     <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-4 gap-12">
       <div className="col-span-1 md:col-span-2">
         <div className="flex items-center gap-2 mb-6">
-          <div className="w-8 h-8 moroccan-gradient rounded-lg flex items-center justify-center text-white font-heritage">AP</div>
-          <span className="text-xl font-heritage font-bold text-orange-950">Artisanat Patrimoine</span>
-        </div>
+          <div className="w-16 h-16  moorish-arch flex items-center justify-center border-2 border-[#d48a24]/30 shadow-xl group-hover:scale-110 transition-all duration-500 overflow-hidden">
+            <img
+              src="../assets/DAR.png"
+              alt="Logo Dar Sanعa"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div className="w-70 h-20  flex items-center justify-center  group-hover:scale-110 transition-all duration-500 overflow-hidden">
+            <img
+              src="../assets/DAR 2.png"
+              alt="Logo Dar Sanعa"
+              className="w-full h-full object-cover"
+            />
+          </div></div>
         <p className="text-gray-500 max-w-sm">
           La plateforme officielle dédiée à la valorisation et la digitalisation des métiers artisanaux traditionnels marocains. Soutenez l'authenticité.
         </p>
@@ -64,13 +75,13 @@ const App: React.FC = () => {
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/artisan/:id" element={<ArtisanShowroom />} />
               <Route path="/login" element={<Login />} />
-              <Route 
-                path="/dashboard" 
+              <Route
+                path="/dashboard"
                 element={
                   <PrivateRoute>
                     <Dashboard />
                   </PrivateRoute>
-                } 
+                }
               />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
