@@ -28,7 +28,7 @@ export const getProducts = async (req, res, next) => {
         }
 
         const products = await Product.find(query)
-            .populate("artisan", "name email")
+            .populate("artisan", "name email artisanProfile")
             .sort({ createdAt: -1 });
 
         res.json(products);
@@ -41,7 +41,7 @@ export const getProducts = async (req, res, next) => {
 export const getProductById = async (req, res, next) => {
     try {
         const product = await Product.findById(req.params.id)
-            .populate("artisan", "name email");
+            .populate("artisan", "name email artisanProfile");
 
         if (!product) {
             res.status(404);

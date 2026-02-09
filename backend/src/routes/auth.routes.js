@@ -17,106 +17,21 @@ const isAuthenticated = (req, res, next) => {
 
 // --- Main Routes ---
 router.get('/', (req, res) => {
-  let userGreeting = 'Welcome, Guest!';
-  if (req.isAuthenticated()) {
-    userGreeting = `Welcome, ${req.user.displayName}! (${req.user.role.join(', ')})`;
-  }
-  res.send(`
-    <h1>Artisanal Platform</h1>
-    <p>${userGreeting}</p>
-    <ul>
-      ${req.isAuthenticated() ? `
-        <li><a href="/profile">View Profile</a></li>
-        <li><a href="/logout">Logout</a></li>
-      ` : `
-        <li><a href="/login">Login</a></li>
-        <li><a href="/signup">Sign Up</a></li>
-        <li><a href="/auth/google">Login with Google</a></li>
-        <li><a href="/auth/facebook">Login with Facebook</a></li>
-      `}
-    </ul>
-  `);
+  res.redirect(process.env.FRONTEND_URL || 'http://localhost:5173');
 });
 
 router.get('/login', (req, res) => {
-  const errorMessage = req.flash('error');
-  res.send(`
-    <h1>Login</h1>
-    ${errorMessage.length ? `<p style="color:red;">${errorMessage}</p>` : ''}
-    <form action="/login/password" method="post">
-      <div>
-        <label>Email:</label>
-        <input type="email" name="email"/>
-      </div>
-      <div>
-        <label>Password:</label>
-        <input type="password" name="password"/>
-      </div>
-      <div>
-        <input type="submit" value="Log In"/>
-      </div>
-    </form>
-    <hr>
-    <a href="/auth/google">Login with Google</a><br>
-    <a href="/auth/facebook">Login with Facebook</a><br>
-    <hr>
-    <p>Don't have an account? <a href="/signup">Sign up</a></p>
-  `);
+  res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login`);
 });
 
 // --- Profile Route ---
 router.get('/profile', isAuthenticated, (req, res) => {
-  let profileInfo = `
-    <h2>Welcome to your profile, ${req.user.displayName}</h2>
-    <p>Your ID: ${req.user.id}</p>
-    <p>Your Role: ${req.user.role.join(', ')}</p>
-    <p>Provider: ${req.user.provider || 'local'}</p>
-  `;
-
-  if (req.user.role.includes('ARTISAN')) {
-    profileInfo += '<p>You have access to Artisan-specific features!</p>';
-  }
-
-  if (req.user.role.includes('CLIENT')) {
-    profileInfo += '<p>You have access to Client-specific features.</p>';
-  }
-
-  profileInfo += '<a href="/">Home</a>';
-  res.send(profileInfo);
+  res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/profile`);
 });
 
 // --- Signup Routes ---
 router.get('/signup', (req, res) => {
-  res.send(`
-    <h1>Sign Up</h1>
-    <form action="/signup" method="post">
-      <div>
-        <label>First Name:</label>
-        <input type="text" name="firstName"/>
-      </div>
-      <div>
-        <label>Last Name:</label>
-        <input type="text" name="lastName"/>
-      </div>
-      <div>
-        <label>Email:</label>
-        <input type="email" name="email"/>
-      </div>
-      <div>
-        <label>Phone Number:</label>
-        <input type="tel" name="phone"/>
-      </div>
-      <div>
-        <label>Password:</label>
-        <input type="password" name="password"/>
-      </div>
-      <div>
-        <input type="submit" value="Sign Up"/>
-      </div>
-    </form>
-    <hr>
-    <p>Already have an account? <a href="/login">Login</a></p>
-  `);
+  res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/register`);
 });
 
 import User from '../models/User.js';
@@ -150,20 +65,32 @@ router.post('/signup', async (req, res, next) => {
   }
 });
 
+import jwt from 'jsonwebtoken';
+
 // --- Google Auth Routes ---
 const handleSocialCallback = (req, res) => {
   const user = req.user;
-  if (user.role.includes("ADMIN")) {
-    return res.redirect("/admin/dashboard");
-  }
-  if (user.role.includes("ARTISAN")) {
-    if (!user.isApproved) {
-      return res.redirect("/waiting-approval");
-    }
-    return res.redirect("/artisan/dashboard");
-  }
-  // Default for CLIENT
-  res.redirect("/profile");
+
+  // Generate JWT for the React frontend
+  const token = jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+
+  // Encode user data as a JSON string and then to base64 to avoid URL issues
+  const userData = JSON.stringify({
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    isApproved: user.isApproved
+  });
+
+  const encodedUser = Buffer.from(userData).toString('base64');
+
+  // Redirect to frontend success page
+  res.redirect(`${process.env.FRONTEND_URL}/login-success?token=${token}&user=${encodedUser}`);
 };
 
 router.get('/auth/google/callback',

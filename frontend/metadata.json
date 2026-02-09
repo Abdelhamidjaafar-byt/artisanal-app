@@ -1,0 +1,7 @@
+{
+  "name": "Artisanat Patrimoine - Morocco's Traditional Craft Hub",
+  "description": "A comprehensive management and commercialization platform for traditional Moroccan artisans, featuring order tracking, artisan profiles, and AI-powered product enhancements.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

@@ -32,6 +32,14 @@ router.get("/my-orders", auth, async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+const orderValidation = [
+    body("items").isArray({ min: 1 }).withMessage("Items must be an array and not empty"),
+    body("items.*.product").notEmpty().withMessage("Product ID is required"),
+    body("items.*.quantity").isInt({ min: 1 }).withMessage("Quantity must be at least 1"),
+    body("shippingAddress").notEmpty().withMessage("Shipping address is required"),
+    body("paymentInfo.method").notEmpty().withMessage("Payment method is required"),
+    validate
+];
 
 // Update Order Status (Artisan only)
 router.put("/:id/status", auth, async (req, res) => {
