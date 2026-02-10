@@ -4,6 +4,7 @@ import { emitToUser } from "../socket.js";
 
 // CREATE ORDER (Client)
 export const createOrder = async (req, res, next) => {
+    console.log("Order creation initiated with body:", JSON.stringify(req.body, null, 2));
     try {
         const { orderItems: items, shippingAddress, paymentInfo } = req.body;
 
@@ -82,8 +83,10 @@ export const getOrders = async (req, res, next) => {
     }
 };
 
+
 // UPDATE ORDER STATUS (Artisan/Admin)
 export const updateOrderStatus = async (req, res, next) => {
+    console.log(`Update order status initiated for order ID: ${req.params.id} with status: ${req.body.status}`);
     try {
         const { status } = req.body;
         const order = await Order.findById(req.params.id);

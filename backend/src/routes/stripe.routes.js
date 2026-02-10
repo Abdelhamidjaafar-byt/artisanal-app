@@ -1,4 +1,4 @@
-﻿import express from 'express';
+import express from 'express';
 import { createCheckoutSession, stripeWebhook } from '../controllers/stripe.controller.js';
 import { verifyToken } from '../middlewares/auth.middleware.js';
 

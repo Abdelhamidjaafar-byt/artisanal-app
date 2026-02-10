@@ -54,6 +54,7 @@ app.use(session({
   resave: false,
   saveUninitialized: true,
   cookie: { secure: false }
+  cookie: { secure: false }
 }));
 
 app.use(flash());
