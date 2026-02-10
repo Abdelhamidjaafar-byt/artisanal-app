@@ -14,32 +14,6 @@ const isAuthenticated = (req, res, next) => {
   res.redirect('/login');
 };
 
-// Social callback handler
-const handleSocialCallback = (req, res) => {
-  const user = req.user;
-
-  // Generate JWT for the React frontend
-  const token = jwt.sign(
-    { id: user._id, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: "7d" }
-  );
-
-  // Encode user data as a JSON string and then to base64 to avoid URL issues
-  const userData = JSON.stringify({
-    id: user._id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    isApproved: user.isApproved
-  });
-
-  const encodedUser = Buffer.from(userData).toString('base64');
-
-  // Redirect to frontend success page
-  res.redirect(`${process.env.FRONTEND_URL}/login-success?token=${token}&user=${encodedUser}`);
-};
-
 // --- Main Routes ---
 router.get('/', (req, res) => {
   let userGreeting = 'Welcome, Guest!';
@@ -103,11 +77,8 @@ router.post('/signup', async (req, res, next) => {
 
     const newUser = new User({
       name: `${firstName} ${lastName}`,
-      name: `${firstName} ${lastName}`,
       email: email,
       phone: phone,
-      password: password,
-      role: ['CLIENT']
       password: password,
       role: ['CLIENT']
     });
@@ -175,13 +146,6 @@ router.post('/login/password',
   handleSocialCallback
 );
 
-// --- Logout Route ---
-router.get('/logout', (req, res, next) => {
-  req.logout(function (err) {
-    if (err) { return next(err); }
-    res.redirect('/');
-  });
-});
 // --- Logout Route ---
 router.get('/logout', (req, res, next) => {
   req.logout(function (err) {
