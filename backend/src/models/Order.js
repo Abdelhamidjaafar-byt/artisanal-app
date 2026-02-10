@@ -1,5 +1,27 @@
 import mongoose from "mongoose";
 
+const orderItemSchema = new mongoose.Schema({
+    product: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+        required: true,
+    },
+    quantity: {
+        type: Number,
+        required: true,
+        min: 1,
+        default: 1,
+    },
+    customizationDetails: {
+        type: String,
+        trim: true,
+    },
+    price: {
+        type: Number,
+        required: true,
+    },
+});
+
 const orderSchema = new mongoose.Schema(
     {
         client: {
@@ -7,55 +29,29 @@ const orderSchema = new mongoose.Schema(
             ref: "User",
             required: true,
         },
-        items: [
-            {
-                product: {
-                    type: mongoose.Schema.Types.ObjectId,
-                    ref: "Product",
-                    required: true,
-                },
-                quantity: {
-                    type: Number,
-                    required: true,
-                    min: 1,
-                },
-                // Requirement: Tracking customized orders
-                customizationDetails: {
-                    type: String,
-                },
-            },
-        ],
+        artisan: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+        },
+        items: [orderItemSchema],
         totalAmount: {
             type: Number,
             required: true,
         },
         status: {
             type: String,
-            enum: [
-                "in_cart",        // en_panier
-                "pending",        // en_attente
-                "paid",           // payé
-                "in_production",  // en_fabrication
-                "completed",      // terminé
-                "shipped",        // expédié / livré
-                "cancelled",      // annulé
-            ],
-            default: "in_cart",
+            enum: ["PENDING", "IN_FABRICATION", "FINISHED", "DELIVERED", "PAID"],
+            default: "PENDING",
         },
         shippingAddress: {
             type: String,
-            required: function () {
-                return this.status !== 'in_cart';
-            },
+            trim: true,
         },
         paymentInfo: {
-            id: { type: String },
-            status: {
-                type: String,
-                enum: ["pending", "completed", "failed"],
-                default: "pending",
-            },
-            method: { type: String }, // Requirement: Payment management
+            id: String,
+            status: String,
+            method: String,
         },
     },
     { timestamps: true }

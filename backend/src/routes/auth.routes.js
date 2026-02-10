@@ -14,6 +14,32 @@ const isAuthenticated = (req, res, next) => {
   res.redirect('/login');
 };
 
+// Social callback handler
+const handleSocialCallback = (req, res) => {
+  const user = req.user;
+
+  // Generate JWT for the React frontend
+  const token = jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+
+  // Encode user data as a JSON string and then to base64 to avoid URL issues
+  const userData = JSON.stringify({
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    isApproved: user.isApproved
+  });
+
+  const encodedUser = Buffer.from(userData).toString('base64');
+
+  // Redirect to frontend success page
+  res.redirect(`${process.env.FRONTEND_URL}/login-success?token=${token}&user=${encodedUser}`);
+};
+
 // --- Main Routes ---
 router.get('/', (req, res) => {
   let userGreeting = 'Welcome, Guest!';
@@ -38,29 +64,7 @@ router.get('/', (req, res) => {
 });
 
 router.get('/login', (req, res) => {
-  const errorMessage = req.flash('error');
-  res.send(`
-    <h1>Login</h1>
-    ${errorMessage.length ? `<p style="color:red;">${errorMessage}</p>` : ''}
-    <form action="/login/password" method="post">
-      <div>
-        <label>Email:</label>
-        <input type="email" name="email"/>
-      </div>
-      <div>
-        <label>Password:</label>
-        <input type="password" name="password"/>
-      </div>
-      <div>
-        <input type="submit" value="Log In"/>
-      </div>
-    </form>
-    <hr>
-    <a href="/auth/google">Login with Google</a><br>
-    <a href="/auth/facebook">Login with Facebook</a><br>
-    <hr>
-    <p>Don't have an account? <a href="/signup">Sign up</a></p>
-  `);
+  res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login`);
 });
 
 // --- Profile Route ---
@@ -86,36 +90,7 @@ router.get('/profile', isAuthenticated, (req, res) => {
 
 // --- Signup Routes ---
 router.get('/signup', (req, res) => {
-  res.send(`
-    <h1>Sign Up</h1>
-    <form action="/signup" method="post">
-      <div>
-        <label>First Name:</label>
-        <input type="text" name="firstName"/>
-      </div>
-      <div>
-        <label>Last Name:</label>
-        <input type="text" name="lastName"/>
-      </div>
-      <div>
-        <label>Email:</label>
-        <input type="email" name="email"/>
-      </div>
-      <div>
-        <label>Phone Number:</label>
-        <input type="tel" name="phone"/>
-      </div>
-      <div>
-        <label>Password:</label>
-        <input type="password" name="password"/>
-      </div>
-      <div>
-        <input type="submit" value="Sign Up"/>
-      </div>
-    </form>
-    <hr>
-    <p>Already have an account? <a href="/login">Login</a></p>
-  `);
+  res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/register`);
 });
 
 router.post('/signup', async (req, res, next) => {
@@ -128,8 +103,11 @@ router.post('/signup', async (req, res, next) => {
 
     const newUser = new User({
       name: `${firstName} ${lastName}`,
+      name: `${firstName} ${lastName}`,
       email: email,
       phone: phone,
+      password: password,
+      role: ['CLIENT']
       password: password,
       role: ['CLIENT']
     });
@@ -197,6 +175,13 @@ router.post('/login/password',
   handleSocialCallback
 );
 
+// --- Logout Route ---
+router.get('/logout', (req, res, next) => {
+  req.logout(function (err) {
+    if (err) { return next(err); }
+    res.redirect('/');
+  });
+});
 // --- Logout Route ---
 router.get('/logout', (req, res, next) => {
   req.logout(function (err) {

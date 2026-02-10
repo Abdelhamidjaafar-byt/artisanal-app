@@ -31,6 +31,10 @@ export const updateUserProfile = async (req, res, next) => {
         user.name = req.body.name || user.name;
         user.phone = req.body.phone || user.phone;
         user.address = req.body.address || user.address;
+        user.city = req.body.city || user.city;
+        user.postalCode = req.body.postalCode || user.postalCode;
+        user.region = req.body.region || user.region;
+        user.email = req.body.email || user.email;
 
         // Artisan profile updates
         if (user.role.includes("ARTISAN") && req.body.artisanProfile) {
@@ -49,6 +53,9 @@ export const updateUserProfile = async (req, res, next) => {
             role: updatedUser.role,
             phone: updatedUser.phone,
             address: updatedUser.address,
+            city: updatedUser.city,
+            postalCode: updatedUser.postalCode,
+            region: updatedUser.region,
             artisanProfile: updatedUser.artisanProfile
         });
     } catch (error) {
@@ -88,6 +95,17 @@ export const deleteUser = async (req, res, next) => {
 
         await user.deleteOne();
         res.json({ message: "User removed" });
+    } catch (error) {
+        next(error);
+    }
+};
+// @desc    Get all artisans
+// @route   GET /api/users/artisans
+// @access  Public
+export const getArtisans = async (req, res, next) => {
+    try {
+        const artisans = await User.find({ role: "ARTISAN" }).select("-password");
+        res.json(artisans);
     } catch (error) {
         next(error);
     }
