@@ -19,8 +19,17 @@ export interface User {
   role: UserRole;
   avatar?: string;
   region?: string;
-  craftType?: string;
   bio?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  artisanProfile?: {
+    bio?: string;
+    specialties?: string[];
+    experience?: number;
+    region?: string;
+  };
 }
 
 export interface Product {
@@ -34,6 +43,16 @@ export interface Product {
   image: string;
   isCustomizable: boolean;
   stock: number;
+}
+
+export interface CartItem {
+  id: string;
+  productId: string;
+  title: string;
+  price: number;
+  quantity: number;
+  image: string;
+  customizationDetails?: string;
 }
 
 export interface Order {

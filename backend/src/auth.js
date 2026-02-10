@@ -4,7 +4,6 @@ import { Strategy as FacebookStrategy } from 'passport-facebook';
 import { Strategy as LocalStrategy } from 'passport-local';
 import User from './models/User.js';
 import bcrypt from 'bcryptjs';
-import bcrypt from 'bcryptjs';
 
 
 // Passport serialization and deserialization

@@ -2,13 +2,13 @@ import express from "express";
 import User from "../models/User.js";
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
-import auth from "../middlewares/auth.middleware.js";
+import { verifyToken } from "../middlewares/auth.middleware.js";
 import role from "../middlewares/role.middleware.js";
 
 const router = express.Router();
 
 // Get Platform Stats
-router.get("/stats", auth, role("ADMIN"), async (req, res) => {
+router.get("/stats", verifyToken, role("ADMIN"), async (req, res) => {
     try {
         const artisanCount = await User.countDocuments({ role: "ARTISAN" });
         const clientCount = await User.countDocuments({ role: "CLIENT" });
@@ -27,7 +27,7 @@ router.get("/stats", auth, role("ADMIN"), async (req, res) => {
 });
 
 // Get All Artisans
-router.get("/artisans", auth, role("ADMIN"), async (req, res) => {
+router.get("/artisans", verifyToken, role("ADMIN"), async (req, res) => {
     try {
         const artisans = await User.find({ role: "ARTISAN" }).select("-password");
         res.json(artisans);

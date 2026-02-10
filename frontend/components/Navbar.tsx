@@ -2,10 +2,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { UserRole } from '../types';
+import { useCart } from '../context/CartContext';
 
 const Navbar: React.FC = () => {
   const { user, logout, isAuthenticated } = useAuth();
+  const { totalItems, setIsCartOpen } = useCart();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -40,6 +41,25 @@ const Navbar: React.FC = () => {
           <div className="hidden md:flex items-center space-x-8">
             <Link to="/" className="text-orange-900 hover:text-orange-600 font-medium transition">Accueil</Link>
             <Link to="/catalogue" className="text-orange-900 hover:text-orange-600 font-medium transition">Boutique</Link>
+            <Link to="/artisans" className="text-orange-900 hover:text-orange-600 font-medium transition">Artisans</Link>
+            <Link to="/about" className="text-orange-900 hover:text-orange-600 font-medium transition">À propos</Link>
+            <Link to="/contact" className="text-orange-900 hover:text-orange-600 font-medium transition">Contact</Link>
+
+            {/* Cart Button */}
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className="relative text-orange-900 hover:text-orange-600 transition"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              {totalItems > 0 && (
+                <span className="absolute -top-2 -right-2 bg-orange-700 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                  {totalItems}
+                </span>
+              )}
+            </button>
+
             {isAuthenticated ? (
               <>
                 <Link to="/dashboard" className="text-orange-900 hover:text-orange-600 font-medium transition">Mon Espace</Link>
@@ -58,6 +78,19 @@ const Navbar: React.FC = () => {
           </div>
 
           <div className="md:hidden flex items-center">
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className="text-orange-900 mr-4 relative"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              {totalItems > 0 && (
+                <span className="absolute -top-2 -right-2 bg-orange-700 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                  {totalItems}
+                </span>
+              )}
+            </button>
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-orange-900">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
             </button>

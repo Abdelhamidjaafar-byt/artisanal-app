@@ -9,6 +9,28 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 });
 
 /**
+ * @desc    Verify Stripe Session and get payment status
+ * @route   GET /api/stripe/verify-session/:sessionId
+ * @access  Private
+ */
+export const verifySession = async (req, res, next) => {
+    try {
+        const { sessionId } = req.params;
+
+        const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+        res.status(200).json({
+            paymentStatus: session.payment_status,
+            customerEmail: session.customer_details?.email,
+            amountTotal: session.amount_total / 100,
+            orderId: session.metadata?.orderId
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
  * @desc    Create Stripe Checkout Session
  * @route   POST /api/stripe/create-checkout-session
  * @access  Private
@@ -26,7 +48,9 @@ export const createCheckoutSession = async (req, res, next) => {
             throw new Error("Order not found");
         }
 
-        if (order.client.toString() !== req.user.id) {
+        // Handle both ObjectId and populated user objects
+        const clientId = order.client._id ? order.client._id.toString() : order.client.toString();
+        if (clientId !== req.user.id) {
             res.status(403);
             throw new Error("Not authorized to pay for this order");
         }

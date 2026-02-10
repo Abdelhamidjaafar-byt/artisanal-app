@@ -12,8 +12,6 @@ import { verifyToken, authorize, checkApproved } from "../middlewares/auth.middl
 
 import upload from "../middlewares/upload.middleware.js";
 
-import upload from "../middlewares/upload.middleware.js";
-
 const router = express.Router();
 
 // Validation middleware

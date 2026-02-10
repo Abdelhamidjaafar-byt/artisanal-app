@@ -7,6 +7,7 @@ interface AuthContextType {
   user: User | null;
   login: (email: string, password?: string) => Promise<boolean>;
   logout: () => void;
+  updateUser: (data: Partial<User>) => Promise<void>;
   isAuthenticated: boolean;
   loading: boolean;
 }
@@ -57,7 +58,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Backend doesn't return these yet, keep defaults or properties
         avatar: backendUser.avatar,
         region: backendUser.region,
-        craftType: backendUser.craftType,
         bio: backendUser.bio
       };
 
@@ -71,6 +71,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateUser = async (data: Partial<User>) => {
+    try {
+      const response = await api.put('/user/profile', data);
+      const updatedUser = response.data;
+      setUser(updatedUser);
+      localStorage.setItem('artisan_auth', JSON.stringify(updatedUser));
+    } catch (error) {
+      console.error("Update profile failed:", error);
+      throw error;
+    }
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('artisan_auth');
@@ -78,7 +90,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser, isAuthenticated: !!user, loading }}>
       {children}
     </AuthContext.Provider>
   );

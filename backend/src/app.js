@@ -5,12 +5,19 @@ import mongoSanitize from "express-mongo-sanitize";
 import xss from "xss-clean";
 import session from 'express-session';
 import flash from 'connect-flash';
-import { passport } from "./auth.js"; // Import passport from your auth.js
+import { passport } from "./auth.js";
 import productRoutes from "./routes/product.routes.js";
-import authRoutes from "./routes/auth.routes.js"; // New auth routes file
-
+import authRoutes from "./routes/auth.routes.js";
 import morgan from "morgan";
 import { notFound, errorHandler } from "./middlewares/error.middleware.js";
+import orderRoutes from "./routes/order.routes.js";
+import reviewRoutes from "./routes/review.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
+import authApiRoutes from "./routes/auth.api.routes.js";
+import userRoutes from "./routes/user.routes.js";
+import customRequestRoutes from "./routes/customRequest.routes.js";
+import messageRoutes from "./routes/message.routes.js";
+import stripeRoutes from "./routes/stripe.routes.js";
 
 const app = express();
 
@@ -48,7 +55,7 @@ app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: false } // For development. Use true in production with HTTPS
+  cookie: { secure: false }
 }));
 
 // Connect Flash middleware
@@ -58,29 +65,17 @@ app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
 
-import orderRoutes from "./routes/order.routes.js";
-import reviewRoutes from "./routes/review.routes.js";
-import adminRoutes from "./routes/admin.routes.js";
-
-import authApiRoutes from "./routes/auth.api.routes.js"; // New auth API routes
-import userRoutes from "./routes/user.routes.js";
-import adminRoutes from "./routes/admin.routes.js";
-import customRequestRoutes from "./routes/customRequest.routes.js";
-import messageRoutes from "./routes/message.routes.js";
-
-import stripeRoutes from "./routes/stripe.routes.js";
-
+// Routes
 app.use("/api/stripe", stripeRoutes);
-app.use("/api/auth", authApiRoutes); // Mount new API auth routes
+app.use("/api/auth", authApiRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/custom-requests", customRequestRoutes);
 app.use("/api/messages", messageRoutes);
-app.use("/", authRoutes); // Keep legacy auth routes for now
+app.use("/", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/reviews", reviewRoutes);
-app.use("/api/admin", adminRoutes);
 app.get("/", (req, res) => {
   res.send("API is running...");
 });

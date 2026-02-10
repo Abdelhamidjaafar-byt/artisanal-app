@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 import api from '../services/api';
 import { Product, User, UserRole } from '../types';
 
@@ -9,6 +10,7 @@ const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { addItem } = useCart();
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
   const [customData, setCustomData] = useState({ dimensions: '', notes: '' });
 
@@ -92,6 +94,17 @@ const ProductDetail: React.FC = () => {
 
   // const artisan is now state-based defined above
 
+  const handleAddToCart = () => {
+    if (!product) return;
+    addItem({
+      productId: product.id,
+      title: product.title,
+      price: product.price,
+      quantity: 1,
+      image: product.image
+    });
+  };
+
   const handleCustomSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!isAuthenticated) {
@@ -151,7 +164,10 @@ const ProductDetail: React.FC = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4">
-            <button className="flex-1 bg-orange-950 text-white py-5 rounded-2xl font-bold hover:bg-orange-800 transition shadow-xl text-lg">
+            <button
+              onClick={handleAddToCart}
+              className="flex-1 bg-orange-950 text-white py-5 rounded-2xl font-bold hover:bg-orange-800 transition shadow-xl text-lg"
+            >
               Ajouter au Panier
             </button>
             {product.isCustomizable && (

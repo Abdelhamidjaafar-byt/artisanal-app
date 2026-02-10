@@ -5,7 +5,6 @@ import { passport } from '../auth.js';
 import User from '../models/User.js';
 
 const router = express.Router();
-import { passport } from '../auth.js'; // Updated path to auth.js
 
 // Middleware to check if the user is authenticated
 const isAuthenticated = (req, res, next) => {
@@ -15,59 +14,7 @@ const isAuthenticated = (req, res, next) => {
   res.redirect('/login');
 };
 
-// --- Main Routes ---
-router.get('/', (req, res) => {
-  res.redirect(process.env.FRONTEND_URL || 'http://localhost:5173');
-});
-
-router.get('/login', (req, res) => {
-  res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login`);
-});
-
-// --- Profile Route ---
-router.get('/profile', isAuthenticated, (req, res) => {
-  res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/profile`);
-});
-
-// --- Signup Routes ---
-router.get('/signup', (req, res) => {
-  res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/register`);
-});
-
-import User from '../models/User.js';
-
-router.post('/signup', async (req, res, next) => {
-  const { firstName, lastName, email, phone, password } = req.body;
-  try {
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return res.status(400).json({ message: "User already exists" });
-    }
-
-    const newUser = new User({
-      name: `${firstName} ${lastName}`, // User model uses 'name'
-      email: email,
-      phone: phone,
-      password: password, // In a real app, hash and salt this password
-      role: ['CLIENT'] // Default
-    });
-
-    await newUser.save();
-
-    req.login(newUser, (err) => {
-      if (err) {
-        return next(err);
-      }
-      return res.redirect('/profile');
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-import jwt from 'jsonwebtoken';
-
-// --- Google Auth Routes ---
+// Social callback handler
 const handleSocialCallback = (req, res) => {
   const user = req.user;
 
@@ -93,12 +40,65 @@ const handleSocialCallback = (req, res) => {
   res.redirect(`${process.env.FRONTEND_URL}/login-success?token=${token}&user=${encodedUser}`);
 };
 
+// --- Main Routes ---
+router.get('/', (req, res) => {
+  res.redirect(process.env.FRONTEND_URL || 'http://localhost:5173');
+});
+
+router.get('/login', (req, res) => {
+  res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login`);
+});
+
+// --- Profile Route ---
+router.get('/profile', isAuthenticated, (req, res) => {
+  res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard`);
+});
+
+// --- Signup Routes ---
+router.get('/signup', (req, res) => {
+  res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/register`);
+});
+
+router.post('/signup', async (req, res, next) => {
+  const { firstName, lastName, email, phone, password } = req.body;
+  try {
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const newUser = new User({
+      name: `${firstName} ${lastName}`,
+      email: email,
+      phone: phone,
+      password: password,
+      role: ['CLIENT']
+    });
+
+    await newUser.save();
+
+    req.login(newUser, (err) => {
+      if (err) {
+        return next(err);
+      }
+      return res.redirect('/profile');
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// --- Google Auth Routes ---
+
+// Initiate Google OAuth
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
 router.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/login' }),
   handleSocialCallback
 );
 
-// Facebook
+// --- Facebook Auth Routes ---
 router.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }));
 
 router.get('/auth/facebook/callback',
