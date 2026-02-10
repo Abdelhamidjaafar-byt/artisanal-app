@@ -122,7 +122,7 @@ const Register = () => {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className={`w-full ${formData.role === "ARTISAN" ? "bg-majorelle" : "bg-primary"} text-white py-5 rounded-xl font-black flex items-center justify-center gap-3 hover:brightness-110 disabled:opacity-50 transition-all uppercase tracking-[0.2em] text-xs mt-4 shadow-xl`}
+                            className={`w-full ${formData.role === "ARTISAN" ? "bg-majorelle btn-glow-majorelle" : "bg-primary btn-glow-primary"} text-white py-5 rounded-xl font-black flex items-center justify-center gap-3 hover:brightness-110 disabled:opacity-50 transition-all uppercase tracking-[0.2em] text-xs mt-4 shadow-xl btn-pop`}
                         >
                             {isLoading ? "Consulting Elders..." : (
                                 <>Inscribe into History <UserPlus size={18} /></>

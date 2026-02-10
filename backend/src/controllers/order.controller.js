@@ -1,10 +1,11 @@
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
+import { emitToUser } from "../socket.js";
 
 // CREATE ORDER (Client)
 export const createOrder = async (req, res, next) => {
     try {
-        const { items, shippingAddress, paymentInfo } = req.body;
+        const { orderItems: items, shippingAddress, paymentInfo } = req.body;
 
         if (!items || items.length === 0) {
             res.status(400);
@@ -95,6 +96,13 @@ export const updateOrderStatus = async (req, res, next) => {
         order.status = status;
         await order.save();
 
+        // Notify the client about status update
+        emitToUser(order.client, 'order_status_updated', {
+            orderId: order._id,
+            status: order.status,
+            message: `Your order status has been updated to ${status}`
+        });
+
         res.json(order);
     } catch (error) {
         next(error);
@@ -123,7 +131,7 @@ export const updateOrder = async (req, res, next) => {
             throw new Error("Cannot update order after it is processing");
         }
 
-        const { items, shippingAddress } = req.body;
+        const { orderItems: items, shippingAddress } = req.body;
 
         if (shippingAddress) order.shippingAddress = shippingAddress;
 
@@ -142,6 +150,7 @@ export const updateOrder = async (req, res, next) => {
                     product: product._id,
                     quantity: item.quantity,
                     customizationDetails: item.customizationDetails
+                    // Note: price is not stored in item schema, but totalAmount is updated
                 });
             }
             order.items = orderItems;

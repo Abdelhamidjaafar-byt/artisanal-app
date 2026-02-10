@@ -4,10 +4,14 @@ import Navbar from "./components/Navbar";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Marketplace from "./pages/Marketplace";
+import Profile from "./pages/Profile";
 import ArtisanDashboard from "./pages/artisan/Dashboard";
+import ProtectedRoute from "./components/ProtectedRoute";
 import ProductForm from "./pages/artisan/ProductForm";
 import ProductDetails from "./pages/ProductDetails";
-import { MoveRight, Sparkles, Gem, ScrollText, History, Hammer } from "lucide-react";
+import AuthCallback from "./pages/AuthCallback";
+import { MoveRight, Sparkles, Gem, ScrollText, History, Hammer, Package } from "lucide-react";
+import Orders from "./pages/Orders";
 import { motion } from "framer-motion";
 
 const Home = () => (
@@ -94,9 +98,12 @@ const AppContent = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/marketplace" element={<Marketplace />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/product/:id" element={<ProductDetails />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/orders" element={<Orders />} />
         <Route element={<ProtectedRoute allowedRoles={["ARTISAN"]} />}>
           <Route path="/artisan/dashboard" element={<ArtisanDashboard />} />
           <Route path="/artisan/product/new" element={<ProductForm />} />

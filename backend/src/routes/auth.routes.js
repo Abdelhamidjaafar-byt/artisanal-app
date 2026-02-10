@@ -5,7 +5,6 @@ import { passport } from '../auth.js';
 import User from '../models/User.js';
 
 const router = express.Router();
-import { passport } from '../auth.js'; // Updated path to auth.js
 
 // Middleware to check if the user is authenticated
 const isAuthenticated = (req, res, next) => {
@@ -19,7 +18,7 @@ const isAuthenticated = (req, res, next) => {
 router.get('/', (req, res) => {
   let userGreeting = 'Welcome, Guest!';
   if (req.isAuthenticated()) {
-    userGreeting = `Welcome, ${req.user.displayName}! (${req.user.role.join(', ')})`;
+    userGreeting = `Welcome, ${req.user.name}! (${req.user.role.join(', ')})`;
   }
   res.send(`
     <h1>Artisanal Platform</h1>
@@ -67,7 +66,7 @@ router.get('/login', (req, res) => {
 // --- Profile Route ---
 router.get('/profile', isAuthenticated, (req, res) => {
   let profileInfo = `
-    <h2>Welcome to your profile, ${req.user.displayName}</h2>
+    <h2>Welcome to your profile, ${req.user.name}</h2>
     <p>Your ID: ${req.user.id}</p>
     <p>Your Role: ${req.user.role.join(', ')}</p>
     <p>Provider: ${req.user.provider || 'local'}</p>
@@ -119,8 +118,6 @@ router.get('/signup', (req, res) => {
   `);
 });
 
-import User from '../models/User.js';
-
 router.post('/signup', async (req, res, next) => {
   const { firstName, lastName, email, phone, password } = req.body;
   try {
@@ -130,11 +127,11 @@ router.post('/signup', async (req, res, next) => {
     }
 
     const newUser = new User({
-      name: `${firstName} ${lastName}`, // User model uses 'name'
+      name: `${firstName} ${lastName}`,
       email: email,
       phone: phone,
-      password: password, // In a real app, hash and salt this password
-      role: ['CLIENT'] // Default
+      password: password,
+      role: ['CLIENT']
     });
 
     await newUser.save();
@@ -150,29 +147,44 @@ router.post('/signup', async (req, res, next) => {
   }
 });
 
-// --- Google Auth Routes ---
+// --- Social Callback Handler ---
 const handleSocialCallback = (req, res) => {
   const user = req.user;
-  if (user.role.includes("ADMIN")) {
-    return res.redirect("/admin/dashboard");
-  }
-  if (user.role.includes("ARTISAN")) {
-    if (!user.isApproved) {
-      return res.redirect("/waiting-approval");
-    }
-    return res.redirect("/artisan/dashboard");
-  }
-  // Default for CLIENT
-  res.redirect("/profile");
+
+  // Generate JWT token
+  const token = jwt.sign(
+    {
+      id: user._id,
+      email: user.email,
+      role: user.role
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+  );
+
+  // Redirect to frontend with token and user info
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const redirectUrl = `${frontendUrl}/auth/callback?token=${token}&user=${encodeURIComponent(JSON.stringify({
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    isApproved: user.isApproved
+  }))}`;
+
+  res.redirect(redirectUrl);
 };
+
+// --- Google Auth Routes ---
+router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
 router.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/login' }),
   handleSocialCallback
 );
 
-    // Facebook
-    router.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }));
+// --- Facebook Auth Routes ---
+router.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email'] }));
 
 router.get('/auth/facebook/callback',
   passport.authenticate('facebook', { failureRedirect: '/login' }),
@@ -185,12 +197,12 @@ router.post('/login/password',
   handleSocialCallback
 );
 
-    // --- Logout Route ---
-    router.get('/logout', (req, res, next) => {
-      req.logout(function (err) {
-        if (err) { return next(err); }
-        res.redirect('/');
-      });
-    });
+// --- Logout Route ---
+router.get('/logout', (req, res, next) => {
+  req.logout(function (err) {
+    if (err) { return next(err); }
+    res.redirect('/');
+  });
+});
 
-    export default router;
+export default router;

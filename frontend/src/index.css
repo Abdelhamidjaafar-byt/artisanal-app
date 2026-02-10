@@ -35,6 +35,19 @@
   box-sizing: border-box;
 }
 
+input,
+textarea,
+select {
+  color: var(--text-main);
+  caret-color: var(--primary);
+  font-family: inherit;
+}
+
+::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
 body {
   font-family: 'Outfit', sans-serif;
   background-color: var(--background);
@@ -110,4 +123,48 @@ h3,
 ::-webkit-scrollbar-thumb {
   background: var(--primary);
   border-radius: 10px;
+}
+
+/* Button Visibility Enhancements */
+.btn-pop {
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-pop:hover {
+  transform: scale(1.05) translateY(-2px);
+  filter: brightness(1.1);
+}
+
+.btn-glow-primary {
+  box-shadow: 0 0 20px rgba(230, 126, 34, 0.2);
+  animation: pulse-glow-primary 2s infinite ease-in-out;
+}
+
+.btn-glow-majorelle {
+  box-shadow: 0 0 20px rgba(96, 80, 220, 0.2);
+  animation: pulse-glow-majorelle 2s infinite ease-in-out;
+}
+
+@keyframes pulse-glow-primary {
+
+  0%,
+  100% {
+    box-shadow: 0 0 15px rgba(230, 126, 34, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 30px rgba(230, 126, 34, 0.6);
+  }
+}
+
+@keyframes pulse-glow-majorelle {
+
+  0%,
+  100% {
+    box-shadow: 0 0 15px rgba(96, 80, 220, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 30px rgba(96, 80, 220, 0.6);
+  }
 }

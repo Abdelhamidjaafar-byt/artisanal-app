@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Filter, SlidersHorizontal, ShoppingCart, Tag, MapPin } from "lucide-react";
 
 const Marketplace = () => {
+    const navigate = useNavigate();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -54,8 +55,8 @@ const Marketplace = () => {
                 <div className="grid md:grid-cols-4 gap-6">
                     <div className="md:col-span-3 relative group">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" size={20} />
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             placeholder="Search by name, artisan or region..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -64,7 +65,7 @@ const Marketplace = () => {
                     </div>
                     <div className="relative">
                         <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
-                        <select 
+                        <select
                             value={selectedCategory}
                             onChange={(e) => setSelectedCategory(e.target.value)}
                             className="w-full bg-surface border border-border rounded-2xl py-4 pl-12 pr-6 focus:border-primary outline-none appearance-none font-bold text-xs uppercase tracking-widest cursor-pointer"
@@ -78,7 +79,7 @@ const Marketplace = () => {
             {/* Product Grid */}
             {loading ? (
                 <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-8">
-                    {[1,2,3,4,5,6,7,8].map(i => (
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
                         <div key={i} className="bg-surface/50 h-[400px] rounded-3xl animate-pulse border border-border"></div>
                     ))}
                 </div>
@@ -86,7 +87,7 @@ const Marketplace = () => {
                 <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-8">
                     <AnimatePresence>
                         {filteredProducts.map((product, i) => (
-                            <motion.div 
+                            <motion.div
                                 key={product._id}
                                 layout
                                 initial={{ opacity: 0, scale: 0.9 }}
@@ -98,7 +99,7 @@ const Marketplace = () => {
                                 <div className="relative h-64 overflow-hidden">
                                     {/* Placeholder for Product Image with Moroccan Blur */}
                                     <div className="absolute inset-0 bg-primary/5 flex items-center justify-center">
-                                         <Tag className="text-primary/20 rotate-12" size={80} />
+                                        <Tag className="text-primary/20 rotate-12" size={80} />
                                     </div>
                                     <div className="absolute top-4 left-4 bg-background/80 backdrop-blur-md px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-white/5 text-primary">
                                         {product.category}
@@ -130,7 +131,10 @@ const Marketplace = () => {
                                             <span className="text-[10px] text-text-muted uppercase font-bold tracking-widest">Investment</span>
                                             <span className="text-2xl font-black heading text-primary">{product.price} <span className="text-xs ml-0.5">MAD</span></span>
                                         </div>
-                                        <button className="bg-primary p-3 rounded-2xl text-white hover:scale-110 active:scale-90 transition-all shadow-lg shadow-primary/20 group-hover:bg-primary-hover">
+                                        <button
+                                            onClick={() => navigate(`/product/${product._id}`)}
+                                            className="bg-primary p-3 rounded-2xl text-white hover:scale-110 active:scale-90 transition-all shadow-lg shadow-primary/20 group-hover:bg-primary-hover"
+                                        >
                                             <ShoppingCart size={20} />
                                         </button>
                                     </div>

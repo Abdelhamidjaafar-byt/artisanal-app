@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Compass, Hammer, LogOut, Menu, User } from "lucide-react";
+import { Compass, Hammer, LogOut, Menu, User, Package } from "lucide-react";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -43,21 +43,24 @@ const Navbar = () => {
                 <span className="text-sm font-medium">{user.name}</span>
               </div>
               <div className="flex items-center gap-2">
-                 <button className="p-2 bg-surface rounded-lg hover:text-primary transition-colors">
-                    <User size={18} />
-                 </button>
-                 <button 
-                    onClick={handleLogout}
-                    className="p-2 bg-surface rounded-lg hover:text-red-500 transition-colors"
-                  >
-                    <LogOut size={18} />
-                  </button>
+                <Link to="/orders" className="p-2 bg-surface rounded-lg hover:text-primary transition-colors border border-primary/20 btn-pop btn-glow-primary">
+                  <Package size={18} />
+                </Link>
+                <Link to="/profile" className="p-2 bg-surface rounded-lg hover:text-primary transition-colors border border-primary/20 btn-pop btn-glow-primary">
+                  <User size={18} />
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="p-2 bg-surface rounded-lg hover:text-red-500 transition-colors border border-white/5"
+                >
+                  <LogOut size={18} />
+                </button>
               </div>
             </div>
           ) : (
             <div className="flex items-center gap-6">
               <Link to="/login" className="text-sm font-bold hover:text-primary transition-colors uppercase tracking-widest">Login</Link>
-              <Link to="/register" className="bg-primary text-white px-8 py-3 rounded-xl text-sm font-bold shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all uppercase tracking-widest">
+              <Link to="/register" className="bg-primary text-white px-8 py-3 rounded-xl text-sm font-bold shadow-lg shadow-primary/20 btn-pop btn-glow-primary active:scale-95 transition-all uppercase tracking-widest">
                 Join Guild
               </Link>
             </div>
