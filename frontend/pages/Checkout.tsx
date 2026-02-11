@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { CartItem } from '../types';
 import api from '../services/api';
+import { PayPalButtons } from "@paypal/react-paypal-js";
 
 interface DeliveryAddress {
     fullName: string;
@@ -21,6 +22,8 @@ const Checkout: React.FC = () => {
     const { items, totalPrice, clearCart } = useCart();
     const [step, setStep] = useState<'delivery' | 'payment' | 'confirmation'>('delivery');
     const [loading, setLoading] = useState(false);
+    const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'paypal'>('stripe');
+    const [internalOrderId, setInternalOrderId] = useState<string | null>(null);
 
     const [address, setAddress] = useState<DeliveryAddress>({
         fullName: user?.name || '',
@@ -74,6 +77,21 @@ const Checkout: React.FC = () => {
             alert('Le paiement a échoué. Veuillez réessayer.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handlePayPalSuccess = async (details: any, orderId: string) => {
+        try {
+            // Check if captured successfully
+            if (details.status === "COMPLETED") {
+                clearCart();
+                setStep('confirmation');
+            } else {
+                alert("Le paiement n'a pas pu être complété.");
+            }
+        } catch (error) {
+            console.error("PayPal Capture Error:", error);
+            alert("Erreur lors de la capture du paiement.");
         }
     };
 
@@ -194,23 +212,42 @@ const Checkout: React.FC = () => {
                         <div className="bg-white p-8 rounded-3xl shadow-sm border border-orange-50">
                             <h2 className="text-2xl font-heritage font-bold text-orange-950 mb-6">Paiement sécurisé</h2>
 
-                            <div className="bg-orange-50 p-4 rounded-xl mb-6">
-                                <div className="flex items-center gap-4">
-                                    <div className="bg-white p-2 rounded-lg">
-                                        <svg className="w-8 h-8 text-orange-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                        </svg>
+                            <div className="space-y-4 mb-8">
+                                <button
+                                    onClick={() => setPaymentMethod('stripe')}
+                                    className={`w-full p-4 rounded-xl border-2 transition text-left ${paymentMethod === 'stripe' ? 'border-orange-700 bg-orange-50' : 'border-orange-100 hover:border-orange-200'}`}
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className={`p-2 rounded-lg ${paymentMethod === 'stripe' ? 'bg-orange-700 text-white' : 'bg-orange-100 text-orange-700'}`}>
+                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-orange-950">Carte Bancaire</h3>
+                                            <p className="text-xs text-orange-800/60">Sécurisé par Stripe (VISA, Mastercard...)</p>
+                                        </div>
+                                        {paymentMethod === 'stripe' && <div className="ml-auto text-orange-700">✓</div>}
                                     </div>
-                                    <div>
-                                        <h3 className="font-bold text-orange-950">Paiement par carte bancaire</h3>
-                                        <p className="text-sm text-orange-800/60">Sécurisé par Stripe</p>
+                                </button>
+
+                                <button
+                                    onClick={() => setPaymentMethod('paypal')}
+                                    className={`w-full p-4 rounded-xl border-2 transition text-left ${paymentMethod === 'paypal' ? 'border-blue-600 bg-blue-50' : 'border-orange-100 hover:border-orange-200'}`}
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className={`p-2 rounded-lg ${paymentMethod === 'paypal' ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-600'}`}>
+                                            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M7 21L7.9 15.6C8 15.4 8.1 15.3 8.3 15.3H10.5C14.5 15.3 17 13.3 17.6 9.3C17.7 8.5 17.7 7.7 17.5 7C17.1 5 15.5 3.5 13.3 3.5H6.8C6.4 3.5 6.1 3.8 6 4.1L3.1 19.3C3 19.6 3.2 19.9 3.5 19.9H5.5C5.8 19.9 6 19.7 6.1 19.4L6.3 18.2L7 21ZM13.8 9.4C13.4 11.6 11.8 11.6 10.1 11.6H8.6L9.2 8C9.2 7.8 9.4 7.7 9.6 7.7H10C11.6 7.7 13.4 7.7 13.8 9.4Z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-orange-950">PayPal</h3>
+                                            <p className="text-xs text-orange-800/60">Paiement via compte PayPal ou carte</p>
+                                        </div>
+                                        {paymentMethod === 'paypal' && <div className="ml-auto text-blue-600">✓</div>}
                                     </div>
-                                </div>
-                                <div className="flex gap-2 mt-3">
-                                    <span className="bg-white px-3 py-1 rounded text-xs font-bold border border-orange-200">VISA</span>
-                                    <span className="bg-white px-3 py-1 rounded text-xs font-bold border border-orange-200">Mastercard</span>
-                                    <span className="bg-white px-3 py-1 rounded text-xs font-bold border border-orange-200">AMEX</span>
-                                </div>
+                                </button>
                             </div>
 
                             <div className="bg-orange-50 p-4 rounded-xl mb-6">
@@ -228,23 +265,67 @@ const Checkout: React.FC = () => {
                                 >
                                     Retour
                                 </button>
-                                <button
-                                    onClick={handlePayment}
-                                    disabled={loading}
-                                    className="flex-1 bg-orange-700 text-white py-4 rounded-xl font-bold hover:bg-orange-800 transition shadow-lg disabled:bg-orange-300 flex items-center justify-center gap-2"
-                                >
-                                    {loading ? (
-                                        <>
-                                            <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                            </svg>
-                                            Redirection...
-                                        </>
-                                    ) : (
-                                        `Payer ${totalPrice.toFixed(2)} MAD`
-                                    )}
-                                </button>
+
+                                {paymentMethod === 'stripe' ? (
+                                    <button
+                                        onClick={handlePayment}
+                                        disabled={loading}
+                                        className="flex-1 bg-orange-700 text-white py-4 rounded-xl font-bold hover:bg-orange-800 transition shadow-lg disabled:bg-orange-300 flex items-center justify-center gap-2"
+                                    >
+                                        {loading ? (
+                                            <>
+                                                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                Redirection...
+                                            </>
+                                        ) : (
+                                            `Payer ${totalPrice.toFixed(2)} MAD`
+                                        )}
+                                    </button>
+                                ) : (
+                                    <div className="flex-1 min-w-[200px]">
+                                        <PayPalButtons
+                                            style={{ layout: "horizontal", height: 50 }}
+                                            createOrder={async () => {
+                                                try {
+                                                    const orderItems = items.map(item => ({
+                                                        product: item.productId,
+                                                        quantity: item.quantity,
+                                                        customizationDetails: item.customizationDetails || ''
+                                                    }));
+                                                    const shippingAddress = `${address.fullName}\n${address.address}\n${address.postalCode} ${address.city}\n${address.phone}`;
+
+                                                    const orderRes = await api.post('/orders', {
+                                                        items: orderItems,
+                                                        shippingAddress,
+                                                        paymentInfo: { method: 'paypal', status: 'pending' }
+                                                    });
+                                                    const orderId = orderRes.data._id;
+                                                    setInternalOrderId(orderId);
+
+                                                    const res = await api.post('/paypal/create-order', { orderId });
+                                                    return res.data.id;
+                                                } catch (error) {
+                                                    console.error("PayPal Order Creation Error:", error);
+                                                    throw error;
+                                                }
+                                            }}
+                                            onApprove={async (data, actions) => {
+                                                try {
+                                                    const res = await api.post('/paypal/capture-order', {
+                                                        paypalOrderId: data.orderID,
+                                                        orderId: internalOrderId
+                                                    });
+                                                    handlePayPalSuccess(res.data, internalOrderId || "");
+                                                } catch (error) {
+                                                    console.error("PayPal Approval Error:", error);
+                                                }
+                                            }}
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}

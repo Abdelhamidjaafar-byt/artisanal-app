@@ -5,33 +5,50 @@ import { useAuth } from "../../context/AuthContext";
 const LoginSuccess = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const { } = useAuth();
+    const { setAuthData } = useAuth();
 
     useEffect(() => {
+        console.log("LoginSuccess: Component mounted");
         const token = searchParams.get("token");
-        const encodedUser = searchParams.get("user");
+        const userParam = searchParams.get("user");
 
-        if (token && encodedUser) {
+        console.log("LoginSuccess: Params", { hasToken: !!token, hasUser: !!userParam });
+
+        if (token && userParam) {
             try {
-                // Decode user data
-                const userData = JSON.parse(atob(encodedUser));
+                // searchParams.get already decodes the URI component
+                const userData = JSON.parse(userParam);
+                console.log("LoginSuccess: Parsed userData", userData);
 
-                // Save to localStorage (matching AuthContext keys)
-                localStorage.setItem("artisan_token", token);
-                localStorage.setItem("artisan_auth", JSON.stringify(userData));
+                // Normalize role (backend sends array, frontend expects string/UserRole)
+                if (Array.isArray(userData.role) && userData.role.length > 0) {
+                    userData.role = userData.role[0];
+                }
 
-                // Force a page reload to trigger the AuthProvider re-sync
-                window.location.href = userData.role.includes("ARTISAN")
-                    ? "/dashboard"
-                    : "/dashboard";
+                // Ensure id is present (backend might use _id)
+                if (userData._id && !userData.id) {
+                    userData.id = userData._id;
+                }
+
+                console.log("LoginSuccess: Final normalized userData", userData);
+
+                // Set auth data in context for immediate state sync
+                setAuthData(userData, token);
+                console.log("LoginSuccess: authData set, navigating to dashboard...");
+
+                // Small delay to ensure state propagates before navigation
+                setTimeout(() => {
+                    navigate("/dashboard");
+                }, 100);
             } catch (error) {
-                console.error("Failed to process social login:", error);
+                console.error("LoginSuccess error:", error);
                 navigate("/login");
             }
         } else {
+            console.warn("LoginSuccess: Missing token or userParam");
             navigate("/login");
         }
-    }, [searchParams, navigate]);
+    }, [searchParams, navigate, setAuthData]);
 
     return (
         <div className="min-h-screen flex items-center justify-center">

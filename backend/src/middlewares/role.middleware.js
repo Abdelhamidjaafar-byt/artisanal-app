@@ -1,6 +1,9 @@
 const role = (...allowedRoles) => {
     return (req, res, next) => {
-        if (!req.user || !allowedRoles.includes(req.user.role)) {
+        const userRoles = Array.isArray(req.user.role) ? req.user.role : [req.user.role];
+        const hasPermission = allowedRoles.some(r => userRoles.includes(r));
+
+        if (!req.user || !hasPermission) {
             return res.status(403).json({ message: "Access denied: insufficient permissions" });
         }
         next();

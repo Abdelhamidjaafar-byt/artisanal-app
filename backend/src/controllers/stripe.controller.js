@@ -1,136 +1,89 @@
-import Stripe from "stripe";
-import Order from "../models/Order.js";
-import dotenv from "dotenv";
+﻿import Stripe from 'stripe';
+import Order from '../models/Order.js';
+import { emitToUser } from '../socket.js';
 
-dotenv.config();
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: "2025-01-27.acacia",
-});
-
-/**
- * @desc    Verify Stripe Session and get payment status
- * @route   GET /api/stripe/verify-session/:sessionId
- * @access  Private
- */
-export const verifySession = async (req, res, next) => {
-    try {
-        const { sessionId } = req.params;
-
-        const session = await stripe.checkout.sessions.retrieve(sessionId);
-
-        res.status(200).json({
-            paymentStatus: session.payment_status,
-            customerEmail: session.customer_details?.email,
-            amountTotal: session.amount_total / 100,
-            orderId: session.metadata?.orderId
-        });
-    } catch (error) {
-        next(error);
-    }
-};
-
-/**
- * @desc    Create Stripe Checkout Session
- * @route   POST /api/stripe/create-checkout-session
- * @access  Private
- */
-export const createCheckoutSession = async (req, res, next) => {
-    console.log("--- DEBUG: createCheckoutSession Called ---");
-    console.log("Stripe API Version:", stripe.apiVersion);
-    console.log("OrderId:", req.body.orderId);
+export const createCheckoutSession = async (req, res) => {
     try {
         const { orderId } = req.body;
-        const order = await Order.findById(orderId).populate("items.product");
+        const order = await Order.findById(orderId).populate('items.product');
 
         if (!order) {
-            res.status(404);
-            throw new Error("Order not found");
+            return res.status(404).json({ message: 'Order not found' });
         }
 
-        // Handle both ObjectId and populated user objects
-        const clientId = order.client._id ? order.client._id.toString() : order.client.toString();
-        if (clientId !== req.user.id) {
-            res.status(403);
-            throw new Error("Not authorized to pay for this order");
-        }
-
-        const lineItems = order.items.map((item) => {
-            const lineItem = {
-                price_data: {
-                    currency: "mad",
-                    product_data: {
-                        name: item.product.title,
-                    },
-                    unit_amount: Math.round(item.product.price * 100),
+        const line_items = order.items.map((item) => ({
+            price_data: {
+                currency: 'mad',
+                product_data: {
+                    name: item.product?.name || 'Authentic Moroccan Product',
+                    images: item.product?.images || [],
                 },
-                quantity: item.quantity,
-            };
-
-            if (item.customizationDetails && item.customizationDetails.trim() !== "") {
-                lineItem.price_data.product_data.description = item.customizationDetails;
-            }
-
-            return lineItem;
-        });
+                unit_amount: Math.round(item.product?.price * 100) || Math.round(order.totalAmount * 100),
+            },
+            quantity: item.quantity || 1,
+        }));
 
         const session = await stripe.checkout.sessions.create({
-            payment_method_types: ["card", "paypal"],
-            line_items: lineItems,
-            mode: "payment",
-            success_url: `${process.env.FRONTEND_URL}/order-success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${process.env.FRONTEND_URL}/order-cancel`,
+            payment_method_types: ['card'],
+            line_items,
+            mode: 'payment',
+            success_url: `${process.env.FRONTEND_URL}/order/success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${process.env.FRONTEND_URL}/order/cancel`,
             metadata: {
                 orderId: order._id.toString(),
             },
         });
 
-        res.status(200).json({ url: session.url });
+        res.json({ url: session.url });
     } catch (error) {
-        next(error);
+        console.error('Stripe Session Error:', error);
+        res.status(500).json({ message: error.message });
     }
 };
 
-/**
- * @desc    Stripe Webhook Handler
- * @route   POST /api/stripe/webhook
- * @access  Public
- */
 export const stripeWebhook = async (req, res) => {
-    const sig = req.headers["stripe-signature"];
+    const sig = req.headers['stripe-signature'];
     let event;
 
     try {
         event = stripe.webhooks.constructEvent(
-            req.body,
-            sig,
-            process.env.STRIPE_WEBHOOK_SECRET
+            req.body, sig, process.env.STRIPE_WEBHOOK_SECRET
         );
     } catch (err) {
-        console.error(`Webhook Error: ${err.message}`);
+        console.error('Webhook Error:', err.message);
         return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
-    // Handle the event
-    if (event.type === "checkout.session.completed") {
+    if (event.type === 'checkout.session.completed') {
         const session = event.data.object;
         const orderId = session.metadata.orderId;
 
         try {
-            const order = await Order.findById(orderId);
+            const order = await Order.findByIdAndUpdate(orderId, {
+                status: 'paid',
+                'paymentInfo.status': 'completed',
+                'paymentInfo.id': session.id,
+                'paymentInfo.method': 'stripe'
+            }).populate('items.product');
+
             if (order) {
-                order.status = "paid";
-                order.paymentInfo = {
-                    id: session.payment_intent,
-                    status: "completed",
-                    method: "stripe",
-                };
-                await order.save();
-                console.log(`Order ${orderId} marked as paid.`);
+                // Get unique artisans for this order
+                const artisanIds = [...new Set(order.items.map(item => item.product?.artisan?.toString()).filter(id => id))];
+
+                artisanIds.forEach(artisanId => {
+                    emitToUser(artisanId, 'new_order', {
+                        orderId: order._id,
+                        message: 'You have a new order!',
+                        totalAmount: order.totalAmount
+                    });
+                });
             }
+
+            console.log(`Order ${orderId} marked as paid and artisans notified`);
         } catch (error) {
-            console.error(`Error updating order ${orderId}: ${error.message}`);
-            return res.status(500).send("Error updating order");
+            console.error('Order Update Error:', error);
         }
     }
 

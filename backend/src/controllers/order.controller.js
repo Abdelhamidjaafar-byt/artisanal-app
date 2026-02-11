@@ -1,11 +1,12 @@
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
+import { emitToUser } from "../socket.js";
 
 // CREATE ORDER (Client)
 export const createOrder = async (req, res, next) => {
     console.log("Order creation initiated with body:", JSON.stringify(req.body, null, 2));
     try {
-        const { items, shippingAddress, paymentInfo } = req.body;
+        const { orderItems: items, shippingAddress, paymentInfo } = req.body;
 
         if (!items || items.length === 0) {
             res.status(400);
@@ -98,6 +99,22 @@ export const updateOrderStatus = async (req, res, next) => {
         order.status = status;
         await order.save();
 
+        // Create in-app notification
+        const { createNotification } = await import("./notification.controller.js");
+        await createNotification({
+            user: order.client,
+            message: `Votre commande #${order._id.toString().slice(-6)} est maintenant: ${status}`,
+            type: "ORDER_STATUS",
+            orderId: order._id
+        });
+
+        // Notify the client about status update via Socket
+        emitToUser(order.client, 'order_status_updated', {
+            orderId: order._id,
+            status: order.status,
+            message: `Your order status has been updated to ${status}`
+        });
+
         res.json(order);
     } catch (error) {
         next(error);
@@ -126,7 +143,7 @@ export const updateOrder = async (req, res, next) => {
             throw new Error("Cannot update order after it is processing");
         }
 
-        const { items, shippingAddress } = req.body;
+        const { orderItems: items, shippingAddress } = req.body;
 
         if (shippingAddress) order.shippingAddress = shippingAddress;
 
@@ -145,6 +162,7 @@ export const updateOrder = async (req, res, next) => {
                     product: product._id,
                     quantity: item.quantity,
                     customizationDetails: item.customizationDetails
+                    // Note: price is not stored in item schema, but totalAmount is updated
                 });
             }
             order.items = orderItems;

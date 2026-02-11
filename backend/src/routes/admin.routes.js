@@ -5,6 +5,8 @@ import Product from "../models/Product.js";
 import { verifyToken } from "../middlewares/auth.middleware.js";
 import role from "../middlewares/role.middleware.js";
 
+import { approveArtisan, getPendingArtisans } from "../controllers/admin.controller.js";
+
 const router = express.Router();
 
 // Get Platform Stats
@@ -35,5 +37,11 @@ router.get("/artisans", verifyToken, role("ADMIN"), async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+
+// Get Pending Artisans
+router.get("/pending-artisans", verifyToken, role("ADMIN"), getPendingArtisans);
+
+// Approve Artisan
+router.patch("/approve/:id", verifyToken, role("ADMIN"), approveArtisan);
 
 export default router;

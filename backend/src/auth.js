@@ -1,10 +1,9 @@
-import passport from 'passport';
+﻿import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 import { Strategy as LocalStrategy } from 'passport-local';
 import User from './models/User.js';
 import bcrypt from 'bcryptjs';
-
 
 // Passport serialization and deserialization
 passport.serializeUser((user, done) => {
@@ -28,10 +27,8 @@ passport.use(new GoogleStrategy({
 },
   async (accessToken, refreshToken, profile, done) => {
     try {
-      // Check if user already exists in our db by googleId
       let user = await User.findOne({ googleId: profile.id });
       if (user) {
-        // Ensure CLIENT role exists and provider is set
         let updated = false;
         if (!user.role.includes('CLIENT')) {
           user.role.push('CLIENT');
@@ -45,11 +42,9 @@ passport.use(new GoogleStrategy({
         return done(null, user);
       }
 
-      // Check if user exists by email
       const email = profile.emails[0].value;
       user = await User.findOne({ email });
       if (user) {
-        // Link googleId and ensure CLIENT role
         user.googleId = profile.id;
         user.provider = 'google';
         if (!user.role.includes('CLIENT')) {
@@ -59,14 +54,13 @@ passport.use(new GoogleStrategy({
         return done(null, user);
       }
 
-      // Create new user
       const newUser = new User({
         googleId: profile.id,
-        name: profile.displayName || `${profile.name.givenName} ${profile.name.familyName}`,
-        username: email.split('@')[0] + "_" + profile.id.substring(0, 5), // Generate a username
+        name: profile.displayName || profile.username || 'Google User',
+        username: email ? (email.split('@')[0] + "_" + profile.id.substring(0, 5)) : ("google_" + profile.id),
         email: email,
         provider: 'google',
-        role: ['CLIENT'] // Default to CLIENT for social logins
+        role: ['CLIENT']
       });
 
       await newUser.save();
@@ -81,15 +75,13 @@ passport.use(new GoogleStrategy({
 passport.use(new FacebookStrategy({
   clientID: process.env.FACEBOOK_APP_ID,
   clientSecret: process.env.FACEBOOK_APP_SECRET,
-  callbackURL: process.env.FACEBOOK_CALLBACK_URL || 'http://localhost:3000/api/auth/facebook/callback',
-  profileFields: ['id', 'displayName', 'emails', 'name', 'photos']
+  callbackURL: process.env.FACEBOOK_CALLBACK_URL || 'http://localhost:3000/auth/facebook/callback',
+  profileFields: ['id', 'displayName', 'emails', 'name']
 },
   async (accessToken, refreshToken, profile, done) => {
     try {
-      // Check if user already exists in our db by facebookId
       let user = await User.findOne({ facebookId: profile.id });
       if (user) {
-        // Ensure CLIENT role exists and provider is set
         let updated = false;
         if (!user.role.includes('CLIENT')) {
           user.role.push('CLIENT');
@@ -103,13 +95,10 @@ passport.use(new FacebookStrategy({
         return done(null, user);
       }
 
-      const email = profile.emails ? profile.emails[0].value : undefined;
-      const username = email ? email.split('@')[0] + "_" + profile.id.substring(0, 5) : "fb_" + profile.id;
-
+      const email = profile.emails && profile.emails[0] ? profile.emails[0].value : null;
       if (email) {
         user = await User.findOne({ email });
         if (user) {
-          // Link facebookId and ensure CLIENT role
           user.facebookId = profile.id;
           user.provider = 'facebook';
           if (!user.role.includes('CLIENT')) {
@@ -122,8 +111,8 @@ passport.use(new FacebookStrategy({
 
       const newUser = new User({
         facebookId: profile.id,
-        name: profile.displayName || `${profile.name.givenName} ${profile.name.familyName}`,
-        username: username,
+        name: profile.displayName || `${profile.name?.givenName || ''} ${profile.name?.familyName || ''}`.trim() || 'Facebook User',
+        username: email ? (email.split('@')[0] + "_" + profile.id.substring(0, 5)) : ("facebook_" + profile.id),
         email: email,
         provider: 'facebook',
         role: ['CLIENT']

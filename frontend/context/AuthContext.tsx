@@ -8,6 +8,8 @@ interface AuthContextType {
   login: (email: string, password?: string) => Promise<boolean>;
   logout: () => void;
   updateUser: (data: Partial<User>) => Promise<void>;
+  refreshUser: () => Promise<void>;
+  setAuthData: (user: User, token: string) => void;
   isAuthenticated: boolean;
   loading: boolean;
 }
@@ -55,7 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         name: backendUser.name,
         email: backendUser.email,
         role: userRole,
-        // Backend doesn't return these yet, keep defaults or properties
+        isApproved: backendUser.isApproved,
         avatar: backendUser.avatar,
         region: backendUser.region,
         bio: backendUser.bio
@@ -65,9 +67,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('artisan_token', token);
       localStorage.setItem('artisan_auth', JSON.stringify(userToSave));
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login failed:", error);
-      return false;
+      // Propagate the specific error message from the backend if available
+      const message = error.response?.data?.message || "Échec de la connexion. Veuillez réessayer.";
+      throw new Error(message);
     }
   };
 
@@ -83,6 +87,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const refreshUser = async () => {
+    try {
+      const response = await api.get('/users/profile');
+      const backendUser = response.data;
+
+      const userRole = backendUser.role && backendUser.role.length > 0
+        ? (backendUser.role[0] as UserRole)
+        : UserRole.CLIENT;
+
+      const userToSave: User = {
+        id: backendUser._id || backendUser.id,
+        name: backendUser.name,
+        email: backendUser.email,
+        role: userRole,
+        isApproved: backendUser.isApproved,
+        avatar: backendUser.avatar,
+        region: backendUser.region,
+        bio: backendUser.bio
+      };
+
+      setUser(userToSave);
+      localStorage.setItem('artisan_auth', JSON.stringify(userToSave));
+    } catch (error) {
+      console.error("Refresh user failed:", error);
+    }
+  };
+
+  const setAuthData = React.useCallback((userToSet: User, token: string) => {
+    setUser(userToSet);
+    setLoading(false);
+    localStorage.setItem('artisan_token', token);
+    localStorage.setItem('artisan_auth', JSON.stringify(userToSet));
+  }, []);
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('artisan_auth');
@@ -90,7 +128,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, updateUser, isAuthenticated: !!user, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser, refreshUser, setAuthData, isAuthenticated: !!user, loading }}>
       {children}
     </AuthContext.Provider>
   );

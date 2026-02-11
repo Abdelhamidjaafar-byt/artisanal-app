@@ -30,6 +30,7 @@ export interface User {
     experience?: number;
     region?: string;
   };
+  isApproved?: boolean;
 }
 
 export interface Product {
@@ -56,16 +57,23 @@ export interface CartItem {
 }
 
 export interface Order {
-  id: string;
-  clientId: string;
-  artisanId: string;
-  productId: string;
-  productTitle: string;
+  id?: string;
+  _id?: string;
+  clientId?: string;
+  artisanId?: string;
+  productId?: string;
+  productTitle?: string;
   status: OrderStatus;
-  date: string;
-  total: number;
-  isCustom: boolean;
+  date?: string;
+  createdAt: string;
+  total?: number;
+  totalAmount: number;
+  isCustom?: boolean;
   notes?: string;
+  items?: any[];
+  shippingAddress?: string;
+  artisan?: { name: string };
+  client?: { name: string };
 }
 
 export interface CustomRequest {
@@ -83,6 +91,15 @@ export interface Review {
   rating: number;
   comment: string;
   date: string;
+}
+
+export interface Notification {
+  _id: string;
+  message: string;
+  type: 'ORDER_STATUS' | 'PAYMENT' | 'SYSTEM' | 'MESSAGE';
+  orderId?: string;
+  isRead: boolean;
+  createdAt: string;
 }
 
 export interface ChatMessage {
