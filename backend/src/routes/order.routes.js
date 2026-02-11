@@ -110,6 +110,20 @@ router.put("/:id/status", verifyToken, async (req, res) => {
 
         order.status = req.body.status;
         await order.save();
+
+        // Create in-app notification
+        try {
+            const { createNotification } = await import("../controllers/notification.controller.js");
+            await createNotification({
+                user: order.client,
+                message: `Votre commande #${order._id.toString().slice(-6)} est maintenant: ${req.body.status}`,
+                type: "ORDER_STATUS",
+                orderId: order._id
+            });
+        } catch (error) {
+            console.error("Failed to create notification:", error);
+        }
+
         res.json(order);
     } catch (error) {
         res.status(500).json({ message: error.message });

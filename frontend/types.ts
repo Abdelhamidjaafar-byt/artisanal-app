@@ -93,6 +93,15 @@ export interface Review {
   date: string;
 }
 
+export interface Notification {
+  _id: string;
+  message: string;
+  type: 'ORDER_STATUS' | 'PAYMENT' | 'SYSTEM' | 'MESSAGE';
+  orderId?: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
 export interface ChatMessage {
   id: string;
   senderId: string;

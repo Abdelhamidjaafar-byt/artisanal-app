@@ -7,16 +7,28 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [shake, setShake] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await login(email, password);
-    if (success) {
-      navigate('/dashboard');
-    } else {
-      setError('Échec de la connexion. Vérifiez vos identifiants.');
+    setIsLoading(true);
+    setError('');
+    setShake(false);
+
+    try {
+      const success = await login(email, password);
+      if (success) {
+        navigate('/dashboard');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Échec de la connexion. Vérifiez vos identifiants.');
+      setShake(true);
+      setTimeout(() => setShake(false), 500);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -26,22 +38,37 @@ const Login: React.FC = () => {
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4">
-      <div className="bg-white p-8 md:p-12 rounded-3xl shadow-xl w-full max-w-md border border-orange-50">
+      <div className={`bg-white p-8 md:p-12 rounded-3xl shadow-xl w-full max-w-md border border-orange-50 transition-all duration-300 ${shake ? 'animate-shake' : ''}`}>
         <div className="text-center mb-10">
           <h1 className="text-3xl font-heritage font-bold text-orange-950 mb-2">Bon Retour</h1>
           <p className="text-gray-500">Connectez-vous à votre espace patrimoine</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <div className="bg-red-50 border border-red-100 p-4 rounded-xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="bg-red-500 text-white rounded-full p-1 mt-0.5">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="text-red-800 text-sm font-bold">Erreur de connexion</p>
+                <p className="text-red-700 text-sm opacity-90">{error}</p>
+              </div>
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-semibold text-orange-950 mb-2">Email</label>
             <input
               type="email"
-              className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500 transition"
+              className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500 transition disabled:bg-gray-50"
               placeholder="votre@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={isLoading}
             />
           </div>
 
@@ -49,21 +76,28 @@ const Login: React.FC = () => {
             <label className="block text-sm font-semibold text-orange-950 mb-2">Mot de passe</label>
             <input
               type="password"
-              className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500 transition"
+              className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500 transition disabled:bg-gray-50"
               placeholder="Votre mot de passe"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              disabled={isLoading}
             />
           </div>
 
-          {error && <p className="text-red-600 text-sm font-medium">{error}</p>}
-
           <button
             type="submit"
-            className="w-full bg-orange-700 text-white py-4 rounded-xl font-bold hover:bg-orange-800 transition shadow-lg"
+            disabled={isLoading}
+            className={`w-full bg-orange-700 text-white py-4 rounded-xl font-bold transition shadow-lg flex items-center justify-center gap-2 ${isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-orange-800'}`}
           >
-            Se Connecter
+            {isLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/20 border-t-white"></div>
+                Connexion...
+              </>
+            ) : (
+              'Se Connecter'
+            )}
           </button>
         </form>
 

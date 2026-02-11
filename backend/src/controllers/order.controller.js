@@ -99,7 +99,16 @@ export const updateOrderStatus = async (req, res, next) => {
         order.status = status;
         await order.save();
 
-        // Notify the client about status update
+        // Create in-app notification
+        const { createNotification } = await import("./notification.controller.js");
+        await createNotification({
+            user: order.client,
+            message: `Votre commande #${order._id.toString().slice(-6)} est maintenant: ${status}`,
+            type: "ORDER_STATUS",
+            orderId: order._id
+        });
+
+        // Notify the client about status update via Socket
         emitToUser(order.client, 'order_status_updated', {
             orderId: order._id,
             status: order.status,

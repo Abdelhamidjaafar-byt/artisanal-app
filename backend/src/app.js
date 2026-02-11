@@ -17,6 +17,7 @@ import customRequestRoutes from './routes/customRequest.routes.js';
 import messageRoutes from './routes/message.routes.js';
 import stripeRoutes from './routes/stripe.routes.js';
 import paypalRoutes from './routes/paypal.routes.js';
+import notificationRoutes from './routes/notification.routes.js';
 import morgan from 'morgan';
 import { notFound, errorHandler } from './middlewares/error.middleware.js';
 
@@ -71,6 +72,7 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/notifications', notificationRoutes);
 app.use('/', authRoutes);
 
 app.get('/', (req, res) => {
