@@ -23,17 +23,17 @@ const ArtisanShowroom: React.FC = () => {
             <div className="w-48 h-48 md:w-64 md:h-64 rounded-[60px] overflow-hidden border-8 border-white shadow-2xl rotate-3">
               <img src={artisan.avatar} alt={artisan.name} className="w-full h-full object-cover" />
             </div>
-            
+
             <div className="flex-1 text-center md:text-left">
               <span className="text-orange-700 font-bold tracking-[0.3em] uppercase mb-4 block">Maître Artisan</span>
               <h1 className="text-5xl md:text-7xl font-heritage font-bold text-orange-950 mb-6">{artisan.name}</h1>
               <div className="flex flex-wrap justify-center md:justify-start gap-4 mb-8">
                 <span className="bg-orange-200/50 text-orange-900 px-4 py-1 rounded-full text-sm font-bold">{artisan.region}</span>
-                <span className="bg-orange-200/50 text-orange-900 px-4 py-1 rounded-full text-sm font-bold">{artisan.craftType}</span>
+                <span className="bg-orange-200/50 text-orange-900 px-4 py-1 rounded-full text-sm font-bold">{artisan.artisanProfile?.specialties?.[0] || 'Artisanat'}</span>
                 <span className="bg-green-100 text-green-800 px-4 py-1 rounded-full text-sm font-bold">Vérifié ✓</span>
               </div>
               <p className="text-xl text-orange-900/80 leading-relaxed max-w-2xl italic">
-                "{artisan.bio}"
+                "{artisan.artisanProfile?.bio || artisan.bio}"
               </p>
             </div>
           </div>
@@ -69,8 +69,8 @@ const ArtisanShowroom: React.FC = () => {
       <section className="max-w-7xl mx-auto px-4 w-full">
         <div className="bg-orange-950 rounded-[50px] overflow-hidden flex flex-col md:flex-row items-center">
           <div className="md:w-1/2 h-80 md:h-[500px]">
-            <img 
-              src="https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=800&q=80" 
+            <img
+              src="https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=800&q=80"
               className="w-full h-full object-cover opacity-80"
               alt="Artisan Workshop"
             />
@@ -78,7 +78,7 @@ const ArtisanShowroom: React.FC = () => {
           <div className="md:w-1/2 p-12 md:p-20 text-white">
             <h3 className="text-4xl font-heritage font-bold mb-6 leading-tight">Envie de voir la main à l'œuvre ?</h3>
             <p className="text-orange-100/70 text-lg mb-10 font-light leading-relaxed">
-              L'atelier de {artisan.name} est ouvert aux visiteurs curieux de découvrir les secrets ancestraux du {artisan.craftType?.toLowerCase()}. Planifiez une rencontre ou demandez un appel vidéo pour voir vos pièces en cours de fabrication.
+              L'atelier de {artisan.name} est ouvert aux visiteurs curieux de découvrir les secrets ancestraux du {(artisan.artisanProfile?.specialties?.[0] || 'artisanat')?.toLowerCase()}. Planifiez une rencontre ou demandez un appel vidéo pour voir vos pièces en cours de fabrication.
             </p>
             <button className="bg-orange-700 hover:bg-orange-600 px-10 py-4 rounded-2xl font-bold transition shadow-2xl">
               Contacter l'Atelier

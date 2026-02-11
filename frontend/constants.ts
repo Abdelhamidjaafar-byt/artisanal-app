@@ -7,7 +7,7 @@ export const CRAFT_CATEGORIES = [
   'Dinanderie (نحاس)',
   'Menuiserie Traditionnelle',
   'Broderie Artisanale',
-  'Couture (Kaftan/Djellaba)',
+  'Couture (Kaftan & Djellaba)',
   'Maroquinerie',
   'Zellige',
   'Ferronnerie',
@@ -37,8 +37,11 @@ export const MOCK_USERS: User[] = [
     email: 'ahmed@fassi.ma',
     role: UserRole.ARTISAN,
     region: 'Fès-Meknès',
-    craftType: 'Tissage (زرابي)',
-    bio: 'Maître artisan tisserand depuis plus de 30 ans. Mon atelier à Fès perpétue la tradition du tissage Beni Ouarain avec de la laine pure de l\'Atlas.',
+    artisanProfile: {
+      bio: 'Maître artisan tisserand depuis plus de 30 ans. Mon atelier à Fès perpétue la tradition du tissage Beni Ouarain avec de la laine pure de l\'Atlas.',
+      specialties: ['Tissage (زرابي)'],
+      region: 'Fès-Meknès'
+    },
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&h=200'
   },
   {
@@ -47,8 +50,11 @@ export const MOCK_USERS: User[] = [
     email: 'fatima@ceramique.ma',
     role: UserRole.ARTISAN,
     region: 'Marrakech-Safi',
-    craftType: 'Poterie et Céramique',
-    bio: 'Passionnée par les arts du feu, je crée des pièces uniques inspirées des motifs ancestraux de Safi, tout en apportant une touche de modernité.',
+    artisanProfile: {
+      bio: 'Passionnée par les arts du feu, je crée des pièces uniques inspirées des motifs ancestraux de Safi, tout en apportant une touche de modernité.',
+      specialties: ['Poterie et Céramique'],
+      region: 'Marrakech-Safi'
+    },
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&h=200'
   },
   {
@@ -120,7 +126,9 @@ export const MOCK_ORDERS: Order[] = [
     productTitle: 'Tapis Beni Ouarain Authentique',
     status: OrderStatus.MANUFACTURING,
     date: '2023-11-20',
+    createdAt: new Date().toISOString(),
     total: 4500,
+    totalAmount: 4500,
     isCustom: true,
     notes: 'Dimensions spéciales: 2x3 mètres'
   }
