@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../context/NotificationContext';
 import { useCart } from '../context/CartContext';
 import { CartItem } from '../types';
 import api from '../services/api';
@@ -19,6 +20,7 @@ interface DeliveryAddress {
 const Checkout: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
+    const { showNotification } = useNotification();
     const { items, totalPrice, clearCart } = useCart();
     const [step, setStep] = useState<'delivery' | 'payment' | 'confirmation'>('delivery');
     const [loading, setLoading] = useState(false);
@@ -74,7 +76,7 @@ const Checkout: React.FC = () => {
             }
         } catch (error) {
             console.error('Payment failed:', error);
-            alert('Le paiement a échoué. Veuillez réessayer.');
+            showNotification('Le paiement a échoué. Veuillez réessayer.', 'error');
         } finally {
             setLoading(false);
         }
@@ -87,11 +89,11 @@ const Checkout: React.FC = () => {
                 clearCart();
                 setStep('confirmation');
             } else {
-                alert("Le paiement n'a pas pu être complété.");
+                showNotification("Le paiement n'a pas pu être complété.", 'warning');
             }
         } catch (error) {
             console.error("PayPal Capture Error:", error);
-            alert("Erreur lors de la capture du paiement.");
+            showNotification("Erreur lors de la capture du paiement.", 'error');
         }
     };
 

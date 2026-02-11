@@ -2,10 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { UserRole, OrderStatus, Order, Notification } from '../types';
+import { useNotification } from '../context/NotificationContext';
 import { MOCK_PRODUCTS, CRAFT_CATEGORIES } from '../constants';
 import { generateProductDescription, getArtisanAdvisorResponse } from '../geminiService';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
+import { socketService } from '../services/socketService';
 
 
 const StatusBadge = ({ status }: { status: OrderStatus }) => {
@@ -36,6 +38,7 @@ const StatusBadge = ({ status }: { status: OrderStatus }) => {
 
 const Dashboard: React.FC = () => {
   const { user, updateUser, refreshUser } = useAuth();
+  const { showNotification } = useNotification();
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -93,15 +96,37 @@ const Dashboard: React.FC = () => {
       fetchOrders();
       fetchNotifications();
 
-      // Poll every 10 seconds to keep data fresh
-      const intervalId = setInterval(() => {
-        fetchOrders();
-        fetchNotifications();
-      }, 10000);
+      // Connect to socket
+      socketService.connect(user.id);
 
-      return () => clearInterval(intervalId);
+      // Listen for order updates
+      socketService.on('order_status_updated', (data: any) => {
+        console.log('Order update received:', data);
+
+        // Update orders list immediately
+        setOrders(prevOrders => prevOrders.map(o =>
+          o._id === data.orderId ? { ...o, status: data.status } : o
+        ));
+
+        // Update selected order if open
+        if (selectedOrder && selectedOrder._id === data.orderId) {
+          setSelectedOrder(prev => prev ? { ...prev, status: data.status } : null);
+        }
+
+        // Refresh notifications as a new one was likely created
+        fetchNotifications();
+
+        // Show a toast or alert (optional, using browser alert for now as per existing pattern)
+        // alert(`Commande mise à jour: ${data.status}`); // blocked to avoid spamming alerts
+      });
+
+      return () => {
+        socketService.disconnect();
+        socketService.off('order_status_updated');
+      };
     }
-  }, [user]);
+  }, [user, selectedOrder]); // Added selectedOrder to dependency to update it correctly inside listener
+
 
   if (!user) return <div className="p-10 text-center">Chargement...</div>;
 
@@ -123,12 +148,12 @@ const Dashboard: React.FC = () => {
       if (selectedOrder && selectedOrder._id === orderId) {
         setSelectedOrder({ ...selectedOrder, status: newStatus });
       }
-      alert('Statut mis à jour avec succès');
+      showNotification('Statut mis à jour avec succès', 'success');
     } catch (error) {
       console.error('Failed to update status:', error);
       console.error('Failed to update status:', error);
       // @ts-ignore
-      alert(`Erreur lors de la mise à jour du statut: ${error.response?.data?.message || error.message}`);
+      showNotification(`Erreur lors de la mise à jour du statut: ${error.response?.data?.message || error.message}`, 'error');
     }
   };
 
@@ -148,7 +173,7 @@ const Dashboard: React.FC = () => {
       setSelectedOrder(res.data);
     } catch (error) {
       console.error('Failed to fetch order:', error);
-      alert('Impossible de charger les détails de la commande');
+      showNotification('Impossible de charger les détails de la commande', 'error');
     } finally {
       setLoadingOrderDetail(false);
     }

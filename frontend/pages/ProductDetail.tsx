@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../context/NotificationContext';
 import { useCart } from '../context/CartContext';
 import api from '../services/api';
 import { Product, User, UserRole } from '../types';
@@ -10,6 +11,7 @@ const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { showNotification } = useNotification();
   const { addItem } = useCart();
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
   const [customData, setCustomData] = useState({ dimensions: '', notes: '' });
@@ -111,7 +113,7 @@ const ProductDetail: React.FC = () => {
       navigate('/login');
       return;
     }
-    alert("Votre demande sur-mesure a été envoyée à l'artisan ! Il vous contactera prochainement.");
+    showNotification("Votre demande sur-mesure a été envoyée à l'artisan ! Il vous contactera prochainement.", 'success');
     setIsCustomModalOpen(false);
   };
 
