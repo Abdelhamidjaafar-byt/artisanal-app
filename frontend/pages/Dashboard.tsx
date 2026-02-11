@@ -2,31 +2,44 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { UserRole, OrderStatus, Order, Notification } from '../types';
+import { useNotification } from '../context/NotificationContext';
 import { MOCK_PRODUCTS, CRAFT_CATEGORIES } from '../constants';
 import { generateProductDescription, getArtisanAdvisorResponse } from '../geminiService';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
 import { formatImageUrl } from '../utils/imageUtils';
+import { socketService } from '../services/socketService';
 
 
 const StatusBadge = ({ status }: { status: OrderStatus }) => {
   const statusLabels = {
+    [OrderStatus.IN_CART]: 'Panier',
     [OrderStatus.PENDING]: 'En attente',
-    [OrderStatus.MANUFACTURING]: 'En fabrication',
-    [OrderStatus.COMPLETED]: 'Terminé',
-    [OrderStatus.DELIVERED]: 'Livré'
+    [OrderStatus.IN_FABRICATION]: 'En fabrication',
+    [OrderStatus.FINISHED]: 'Terminé',
+    [OrderStatus.DELIVERED]: 'Livré',
+    [OrderStatus.PAID]: 'Payé',
+    [OrderStatus.SHIPPED]: 'Expédié',
+    [OrderStatus.CANCELLED]: 'Annulé',
+    [OrderStatus.REFUNDED]: 'Remboursé'
   };
   const styles = {
+    [OrderStatus.IN_CART]: 'bg-gray-100 text-gray-800',
     [OrderStatus.PENDING]: 'bg-yellow-100 text-yellow-800',
-    [OrderStatus.MANUFACTURING]: 'bg-blue-100 text-blue-800',
-    [OrderStatus.COMPLETED]: 'bg-green-100 text-green-800',
+    [OrderStatus.IN_FABRICATION]: 'bg-blue-100 text-blue-800',
+    [OrderStatus.FINISHED]: 'bg-green-100 text-green-800',
     [OrderStatus.DELIVERED]: 'bg-gray-100 text-gray-800',
+    [OrderStatus.PAID]: 'bg-green-50 text-green-700',
+    [OrderStatus.SHIPPED]: 'bg-purple-100 text-purple-800',
+    [OrderStatus.CANCELLED]: 'bg-red-100 text-red-800',
+    [OrderStatus.REFUNDED]: 'bg-red-50 text-red-700',
   };
   return <span className={`px-3 py-1 rounded-full text-xs font-bold ${styles[status]}`}>{statusLabels[status]}</span>;
 };
 
 const Dashboard: React.FC = () => {
   const { user, updateUser, refreshUser } = useAuth();
+  const { showNotification } = useNotification();
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -87,8 +100,38 @@ const Dashboard: React.FC = () => {
     if (user) {
       fetchOrders();
       fetchNotifications();
+
+      // Connect to socket
+      socketService.connect(user.id);
+
+      // Listen for order updates
+      socketService.on('order_status_updated', (data: any) => {
+        console.log('Order update received:', data);
+
+        // Update orders list immediately
+        setOrders(prevOrders => prevOrders.map(o =>
+          o._id === data.orderId ? { ...o, status: data.status } : o
+        ));
+
+        // Update selected order if open
+        if (selectedOrder && selectedOrder._id === data.orderId) {
+          setSelectedOrder(prev => prev ? { ...prev, status: data.status } : null);
+        }
+
+        // Refresh notifications as a new one was likely created
+        fetchNotifications();
+
+        // Show a toast or alert (optional, using browser alert for now as per existing pattern)
+        // alert(`Commande mise à jour: ${data.status}`); // blocked to avoid spamming alerts
+      });
+
+      return () => {
+        socketService.disconnect();
+        socketService.off('order_status_updated');
+      };
     }
-  }, [user, user.id]);
+  }, [user, selectedOrder]); // Added selectedOrder to dependency to update it correctly inside listener
+
 
   if (!user) return <div className="p-10 text-center">Chargement...</div>;
 
@@ -110,10 +153,12 @@ const Dashboard: React.FC = () => {
       if (selectedOrder && selectedOrder._id === orderId) {
         setSelectedOrder({ ...selectedOrder, status: newStatus });
       }
-      alert('Statut mis à jour avec succès');
+      showNotification('Statut mis à jour avec succès', 'success');
     } catch (error) {
       console.error('Failed to update status:', error);
-      alert('Erreur lors de la mise à jour du statut');
+      console.error('Failed to update status:', error);
+      // @ts-ignore
+      showNotification(`Erreur lors de la mise à jour du statut: ${error.response?.data?.message || error.message}`, 'error');
     }
   };
 
@@ -133,7 +178,7 @@ const Dashboard: React.FC = () => {
       setSelectedOrder(res.data);
     } catch (error) {
       console.error('Failed to fetch order:', error);
-      alert('Impossible de charger les détails de la commande');
+      showNotification('Impossible de charger les détails de la commande', 'error');
     } finally {
       setLoadingOrderDetail(false);
     }
@@ -726,10 +771,15 @@ const Dashboard: React.FC = () => {
                               : 'bg-white text-orange-800 border border-orange-200 hover:bg-orange-100'
                               }`}
                           >
+                            {status === OrderStatus.IN_CART && 'Panier'}
                             {status === OrderStatus.PENDING && 'En attente'}
-                            {status === OrderStatus.MANUFACTURING && 'En fabrication'}
-                            {status === OrderStatus.COMPLETED && 'Terminé'}
+                            {status === OrderStatus.IN_FABRICATION && 'En fabrication'}
+                            {status === OrderStatus.FINISHED && 'Terminé'}
                             {status === OrderStatus.DELIVERED && 'Livré'}
+                            {status === OrderStatus.PAID && 'Payé'}
+                            {status === OrderStatus.SHIPPED && 'Expédié'}
+                            {status === OrderStatus.CANCELLED && 'Annulé'}
+                            {status === OrderStatus.REFUNDED && 'Remboursé'}
                           </button>
                         ))}
                       </div>

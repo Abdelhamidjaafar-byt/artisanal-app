@@ -172,3 +172,32 @@ h3,
     box-shadow: 0 0 30px rgba(96, 80, 220, 0.6);
   }
 }
+
+@keyframes slideCarousel {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-slide {
+  animation: slideCarousel 20s linear infinite;
+}
+
+
+@keyframes slideCarousel {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-slide {
+  animation: slideCarousel 20s linear infinite;
+}

@@ -3,6 +3,7 @@ import React from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
@@ -48,52 +49,54 @@ const App: React.FC = () => {
       currency: "USD"
     }}>
       <AuthProvider>
-        <CartProvider>
-          <Router>
-            <div className="min-h-screen flex flex-col">
-              <Navbar />
-              <main className="flex-grow">
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/catalogue" element={<Catalogue />} />
-                  <Route path="/product/:id" element={<ProductDetail />} />
-                  <Route path="/artisan/:id" element={<ArtisanShowroom />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route path="/login-success" element={<LoginSuccess />} />
-                  <Route path="/order-success" element={<OrderSuccess />} />
-                  <Route path="/order-cancel" element={<OrderCancel />} />
-                  <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/artisans" element={<Artisans />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/legal" element={<Legal />} />
-                  <Route path="/privacy" element={<Privacy />} />
-                  <Route path="/terms" element={<Terms />} />
-                  <Route
-                    path="/dashboard"
-                    element={
-                      <PrivateRoute>
-                        <Dashboard />
-                      </PrivateRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin"
-                    element={
-                      <PrivateRoute>
-                        <AdminDashboard />
-                      </PrivateRoute>
-                    }
-                  />
-                  <Route path="*" element={<Navigate to="/" />} />
-                </Routes>
-              </main>
-              <Footer />
-              <CartDrawer />
-            </div>
-          </Router>
-        </CartProvider>
+        <NotificationProvider>
+          <CartProvider>
+            <Router>
+              <div className="min-h-screen flex flex-col">
+                <Navbar />
+                <main className="flex-grow">
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/catalogue" element={<Catalogue />} />
+                    <Route path="/product/:id" element={<ProductDetail />} />
+                    <Route path="/artisan/:id" element={<ArtisanShowroom />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/login-success" element={<LoginSuccess />} />
+                    <Route path="/order-success" element={<OrderSuccess />} />
+                    <Route path="/order-cancel" element={<OrderCancel />} />
+                    <Route path="/checkout" element={<Checkout />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/artisans" element={<Artisans />} />
+                    <Route path="/contact" element={<Contact />} />
+                    <Route path="/legal" element={<Legal />} />
+                    <Route path="/privacy" element={<Privacy />} />
+                    <Route path="/terms" element={<Terms />} />
+                    <Route
+                      path="/dashboard"
+                      element={
+                        <PrivateRoute>
+                          <Dashboard />
+                        </PrivateRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin"
+                      element={
+                        <PrivateRoute>
+                          <AdminDashboard />
+                        </PrivateRoute>
+                      }
+                    />
+                    <Route path="*" element={<Navigate to="/" />} />
+                  </Routes>
+                </main>
+                <Footer />
+                <CartDrawer />
+              </div>
+            </Router>
+          </CartProvider>
+        </NotificationProvider>
       </AuthProvider>
     </PayPalScriptProvider>
   );

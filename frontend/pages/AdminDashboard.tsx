@@ -2,8 +2,10 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { User } from '../types';
+import { useNotification } from '../context/NotificationContext';
 
 const AdminDashboard: React.FC = () => {
+    const { showNotification } = useNotification();
     const [stats, setStats] = useState<any>(null);
     const [pendingArtisans, setPendingArtisans] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
@@ -37,7 +39,7 @@ const AdminDashboard: React.FC = () => {
             setStats(statsRes.data);
         } catch (error) {
             console.error('Error approving artisan:', error);
-            alert('Erreur lors de l\'approbation.');
+            showNotification("Erreur lors de l'approbation.", 'error');
         }
     };
 

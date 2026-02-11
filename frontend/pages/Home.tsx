@@ -7,6 +7,31 @@ import api from '../services/api';
 import { Product } from '../types';
 import { formatImageUrl } from '../utils/imageUtils';
 
+// Import craft images
+import tissageImg from '../assets/Tissage.jpeg';
+import poterieImg from '../assets/Poterie.jpeg';
+import dinanderieImg from '../assets/dinanderie.jpeg';
+import menuiserieImg from '../assets/menuiserie.jpeg';
+import broderieImg from '../assets/broderie.jpeg';
+import coutureImg from '../assets/Couture.jpeg';
+import maroquinerieImg from '../assets/Maroquinerie.jpeg';
+import zelligeImg from '../assets/Zellige.jpeg';
+import ferronnerieImg from '../assets/ferronnerie.jpeg';
+import tannageImg from '../assets/Tannage.jpeg';
+
+const CATEGORY_IMAGES: Record<string, string> = {
+  'Tissage (زرابي)': tissageImg,
+  'Poterie et Céramique': poterieImg,
+  'Dinanderie (نحاس)': dinanderieImg,
+  'Menuiserie Traditionnelle': menuiserieImg,
+  'Broderie Artisanale': broderieImg,
+  'Couture (Kaftan & Djellaba)': coutureImg,
+  'Maroquinerie': maroquinerieImg,
+  'Zellige': zelligeImg,
+  'Ferronnerie': ferronnerieImg,
+  'Tannage': tannageImg,
+};
+
 const Home: React.FC = () => {
   const carouselRef = useRef<HTMLDivElement>(null);
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
@@ -87,45 +112,41 @@ const Home: React.FC = () => {
       </section>
 
       {/* Categories Carousel Section */}
-      <section className="max-w-7xl mx-auto px-4 w-full group">
-        <div className="flex items-center justify-between mb-10">
-          <div>
-            <h2 className="text-4xl font-heritage font-bold text-orange-950">Nos Métiers d'Excellence</h2>
-            <div className="h-1 w-24 bg-orange-700 mt-2 rounded-full"></div>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => scroll('left')}
-              className="p-3 rounded-full border border-orange-200 text-orange-900 hover:bg-orange-900 hover:text-white transition-all shadow-sm"
-              aria-label="Précédent"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
-            </button>
-            <button
-              onClick={() => scroll('right')}
-              className="p-3 rounded-full border border-orange-200 text-orange-900 hover:bg-orange-900 hover:text-white transition-all shadow-sm"
-              aria-label="Suivant"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
-            </button>
-          </div>
-        </div>
-
-        <div
-          ref={carouselRef}
-          className="flex gap-6 overflow-x-auto pb-8 pt-2 no-scrollbar snap-x scroll-smooth"
-        >
-          {CRAFT_CATEGORIES.map((cat, idx) => (
-            <div
-              key={idx}
-              className="flex-shrink-0 w-64 snap-start bg-white border border-orange-100 p-8 rounded-[40px] hover:border-orange-800 transition-all duration-500 cursor-pointer shadow-sm hover:shadow-xl group/card text-center relative overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-orange-50 translate-y-full group-hover/card:translate-y-0 transition-transform duration-500 ease-out -z-10"></div>
-              <div className="text-4xl mb-4 transform group-hover/card:scale-125 transition-transform duration-500">✨</div>
-              <p className="text-orange-950 font-heritage font-bold text-xl leading-snug">{cat}</p>
-              <p className="text-orange-700/60 text-xs mt-4 font-bold uppercase tracking-widest opacity-0 group-hover/card:opacity-100 transition-opacity">Découvrir</p>
+      <section className="w-full bg-orange-50/50 py-16 group">
+        <div className="max-w-7xl mx-auto px-4 w-full">
+          <div className="flex items-center justify-between mb-10">
+            <div>
+              <h2 className="text-4xl font-heritage font-bold text-orange-950">Nos Métiers d'Excellence</h2>
+              <div className="h-1 w-24 bg-orange-700 mt-2 rounded-full"></div>
             </div>
-          ))}
+          </div>
+
+          <div
+            ref={carouselRef}
+            className="overflow-hidden pb-8 pt-2"
+          >
+            <div className="flex gap-6 animate-slide w-max">
+              {/* Direct categories and duplicated categories for seamless loop */}
+              {[...CRAFT_CATEGORIES, ...CRAFT_CATEGORIES].map((cat, idx) => (
+                <div
+                  key={idx}
+                  className="flex-shrink-0 w-64 h-80 rounded-[40px] hover:border-orange-800 transition-all duration-500 cursor-pointer shadow-sm hover:shadow-xl group/card text-center relative overflow-hidden flex flex-col items-center justify-center p-8"
+                  style={{
+                    backgroundImage: `url(${CATEGORY_IMAGES[cat]})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center'
+                  }}
+                >
+                  <div className="absolute inset-0 bg-orange-950/40 group-hover/card:bg-orange-950/60 transition-colors duration-500"></div>
+                  <div className="relative z-10">
+                    {/* <div className="text-4xl mb-4 transform group-hover/card:scale-125 transition-transform duration-500">✨</div> */}
+                    <p className="text-white font-heritage font-bold text-xl leading-snug drop-shadow-md">{cat}</p>
+                    <p className="text-orange-200 text-xs mt-4 font-bold uppercase tracking-widest opacity-0 group-hover/card:opacity-100 transition-opacity">Découvrir</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 

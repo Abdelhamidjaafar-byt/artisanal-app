@@ -1,6 +1,8 @@
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import { emitToUser } from "../socket.js";
+import { createNotification } from "./notification.controller.js";
+import { sendOrderStatusEmail } from "../utils/email.service.js";
 
 // CREATE ORDER (Client)
 export const createOrder = async (req, res, next) => {
@@ -16,6 +18,8 @@ export const createOrder = async (req, res, next) => {
         let totalAmount = 0;
         const orderItems = [];
 
+        let artisanId = null;
+
         // Validate products and calculate total
         for (const item of items) {
             const product = await Product.findById(item.product);
@@ -23,6 +27,9 @@ export const createOrder = async (req, res, next) => {
                 res.status(404);
                 throw new Error(`Product not found: ${item.product}`);
             }
+            // Capture artisan ID from the first product (assuming single artisan per order for now)
+            if (!artisanId) artisanId = product.artisan;
+
             if (product.stock < item.quantity) {
                 res.status(400);
                 throw new Error(`Insufficient stock for product: ${product.title}`);
@@ -32,7 +39,8 @@ export const createOrder = async (req, res, next) => {
             orderItems.push({
                 product: product._id,
                 quantity: item.quantity,
-                customizationDetails: item.customizationDetails
+                customizationDetails: item.customizationDetails,
+                price: product.price // Added price to satisfy schema requirement
             });
         }
 
@@ -42,7 +50,8 @@ export const createOrder = async (req, res, next) => {
             totalAmount,
             shippingAddress,
             paymentInfo,
-            status: "in_cart" // Default to cart, or "pending" if immediate order
+            status: "IN_CART", // Default to cart, or "pending" if immediate order
+            artisan: artisanId
         });
 
         res.status(201).json(order);
@@ -54,8 +63,16 @@ export const createOrder = async (req, res, next) => {
 // GET MY ORDERS (Client)
 export const getMyOrders = async (req, res, next) => {
     try {
-        const orders = await Order.find({ client: req.user.id })
+        let query = {};
+        if (req.user.role === 'ARTISAN') {
+            query = { artisan: req.user.id };
+        } else {
+            query = { client: req.user.id };
+        }
+
+        const orders = await Order.find(query)
             .populate("items.product", "title price images")
+            .populate("client", "name email")
             .sort({ createdAt: -1 });
 
         res.json(orders);
@@ -96,11 +113,12 @@ export const updateOrderStatus = async (req, res, next) => {
             throw new Error("Order not found");
         }
 
+
+
         order.status = status;
         await order.save();
 
         // Create in-app notification
-        const { createNotification } = await import("./notification.controller.js");
         await createNotification({
             user: order.client,
             message: `Votre commande #${order._id.toString().slice(-6)} est maintenant: ${status}`,
@@ -114,6 +132,13 @@ export const updateOrderStatus = async (req, res, next) => {
             status: order.status,
             message: `Your order status has been updated to ${status}`
         });
+
+        // Send Email Notification
+        // Need to populate client to get email if not already populated
+        const fullOrder = await order.populate('client', 'email name');
+        if (fullOrder.client && fullOrder.client.email) {
+            await sendOrderStatusEmail(fullOrder.client.email, order._id, status);
+        }
 
         res.json(order);
     } catch (error) {
