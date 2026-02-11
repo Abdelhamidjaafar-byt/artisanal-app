@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import api from '../services/api';
 import { Product, User, UserRole } from '../types';
+import { formatImageUrl } from '../utils/imageUtils';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -13,6 +14,7 @@ const ProductDetail: React.FC = () => {
   const { addItem } = useCart();
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
   const [customData, setCustomData] = useState({ dimensions: '', notes: '' });
+  const [selectedImage, setSelectedImage] = useState<string>('');
 
   // const { id } is already defined above
   const [product, setProduct] = useState<Product | null>(null);
@@ -28,6 +30,7 @@ const ProductDetail: React.FC = () => {
         const p = response.data;
 
         // Map backend product to frontend Product interface
+        const mainImage = formatImageUrl(p.images?.[0] || p.image);
         const mappedProduct: Product = {
           id: p._id,
           artisanId: p.artisan?._id || 'unknown',
@@ -36,7 +39,8 @@ const ProductDetail: React.FC = () => {
           description: p.description,
           price: p.price,
           category: p.category,
-          image: p.image || 'https://via.placeholder.com/600',
+          image: mainImage,
+          images: (p.images || []).map((img: string) => formatImageUrl(img)),
           isCustomizable: p.isCustomizable,
           stock: p.stock
         };
@@ -48,6 +52,7 @@ const ProductDetail: React.FC = () => {
         // Let's attach the artisan info to a separate state or just use the product.artisan info
 
         setProduct(mappedProduct);
+        setSelectedImage(mappedProduct.image);
 
         // Define artisan object for the view
         const artisanData: User = {
@@ -118,15 +123,29 @@ const ProductDetail: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
       <div className="grid lg:grid-cols-2 gap-16 items-start">
-        {/* Left: Product Image in Arch */}
-        <div className="relative moorish-arch bg-white shadow-2xl p-4 border border-orange-100">
-          <div className="moorish-arch-inner overflow-hidden aspect-[4/5] bg-orange-50">
-            <img
-              src={product.image}
-              alt={product.title}
-              className="w-full h-full object-cover"
-            />
+        <div className="flex flex-col gap-4">
+          <div className="relative moorish-arch bg-white shadow-2xl p-4 border border-orange-100">
+            <div className="moorish-arch-inner overflow-hidden aspect-[4/5] bg-orange-50">
+              <img
+                src={selectedImage}
+                alt={product.title}
+                className="w-full h-full object-cover transition-all duration-500"
+              />
+            </div>
           </div>
+          {product.images && product.images.length > 1 && (
+            <div className="flex gap-4 overflow-x-auto pb-2">
+              {product.images.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedImage(img)}
+                  className={`w-20 h-20 rounded-xl overflow-hidden border-2 transition ${selectedImage === img ? 'border-orange-800' : 'border-transparent'}`}
+                >
+                  <img src={img} className="w-full h-full object-cover" alt="" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Right: Product Info */}

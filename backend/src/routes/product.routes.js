@@ -24,11 +24,11 @@ const validate = (req, res, next) => {
 };
 
 const productValidation = [
-    body("name").trim().notEmpty().withMessage("Name is required"),
+    body("title").trim().notEmpty().withMessage("Title is required"),
     body("description").trim().notEmpty().withMessage("Description is required"),
     body("price").isNumeric().withMessage("Price must be a number").toFloat(),
     body("category").trim().notEmpty().withMessage("Category is required"),
-    body("countInStock").isNumeric().withMessage("Stock must be a number").toInt(),
+    body("stock").isNumeric().withMessage("Stock must be a number").toInt(),
     validate
 ];
 

@@ -4,9 +4,11 @@ import {
     updateUserProfile,
     getUsers,
     deleteUser,
-    getArtisans
+    getArtisans,
+    updateUserAvatar
 } from "../controllers/user.controller.js";
 import { verifyToken, authorize } from "../middlewares/auth.middleware.js";
+import upload from "../middlewares/upload.middleware.js";
 
 const router = express.Router();
 
@@ -16,6 +18,7 @@ router.get("/artisans", getArtisans);
 // Profile routes (Any authenticated user)
 router.get("/profile", verifyToken, getUserProfile);
 router.put("/profile", verifyToken, updateUserProfile);
+router.put("/avatar", verifyToken, upload.single("avatar"), updateUserAvatar);
 
 // Auth & Admin routes
 router.get("/", verifyToken, authorize("ADMIN"), getUsers);

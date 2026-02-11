@@ -5,6 +5,7 @@ import { CRAFT_CATEGORIES } from '../constants';
 import ProductCard from '../components/ProductCard';
 import api from '../services/api';
 import { Product } from '../types';
+import { formatImageUrl } from '../utils/imageUtils';
 
 const Home: React.FC = () => {
   const carouselRef = useRef<HTMLDivElement>(null);
@@ -16,18 +17,21 @@ const Home: React.FC = () => {
       try {
         const response = await api.get('/products');
         // Map backend products and take the first 4
-        const mappedProducts: Product[] = response.data.map((p: any) => ({
-          id: p._id,
-          artisanId: p.artisan?._id || 'unknown',
-          artisanName: p.artisan?.name || 'Artisan Inconnu',
-          title: p.title,
-          description: p.description,
-          price: p.price,
-          category: p.category,
-          image: p.image || 'https://via.placeholder.com/300',
-          isCustomizable: p.isCustomizable,
-          stock: p.stock
-        })).slice(0, 4);
+        const mappedProducts: Product[] = response.data.map((p: any) => {
+          const mainImage = formatImageUrl(p.images?.[0] || p.image);
+          return {
+            id: p._id,
+            artisanId: p.artisan?._id || 'unknown',
+            artisanName: p.artisan?.name || 'Artisan Inconnu',
+            title: p.title,
+            description: p.description,
+            price: p.price,
+            category: p.category,
+            image: mainImage,
+            isCustomizable: p.isCustomizable,
+            stock: p.stock
+          };
+        }).slice(0, 4);
 
         setFeaturedProducts(mappedProducts);
       } catch (err) {

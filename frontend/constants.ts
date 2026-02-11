@@ -56,7 +56,8 @@ export const MOCK_USERS: User[] = [
     name: 'Youssef Mansouri',
     email: 'youssef@client.ma',
     role: UserRole.CLIENT,
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&h=200'
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&h=200',
+    craftType: ''
   }
 ];
 
@@ -120,7 +121,9 @@ export const MOCK_ORDERS: Order[] = [
     productTitle: 'Tapis Beni Ouarain Authentique',
     status: OrderStatus.MANUFACTURING,
     date: '2023-11-20',
+    createdAt: '2023-11-20',
     total: 4500,
+    totalAmount: 4500,
     isCustom: true,
     notes: 'Dimensions spéciales: 2x3 mètres'
   }

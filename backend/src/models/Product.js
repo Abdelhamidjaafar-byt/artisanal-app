@@ -20,11 +20,7 @@ const productSchema = new mongoose.Schema(
             type: Number,
             required: true,
         },
-        images: [
-            {
-                type: String,
-            },
-        ],
+        images: [String],
         stock: {
             type: Number,
             required: true,
@@ -35,18 +31,17 @@ const productSchema = new mongoose.Schema(
             type: String,
             required: true,
             enum: [
-                "Weaving",
-                "Pottery",
-                "Brassware",
-                "Woodworking",
-                "Embroidery",
-                "Tailoring",
-                "Leather Goods",
+                "Tissage (زرابي)",
+                "Poterie et Céramique",
+                "Dinanderie (نحاس)",
+                "Menuiserie Traditionnelle",
+                "Broderie Artisanale",
+                "Couture (Kaftan/Djellaba)",
+                "Maroquinerie",
                 "Zellige",
-                "Ironwork",
-                "Tanning",
-
-            ], // Categories translated from the requirements 
+                "Ferronnerie",
+                "Tannage"
+            ],
         },
         isCustomizable: {
             type: Boolean,

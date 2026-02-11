@@ -1,13 +1,24 @@
 import multer from "multer";
 import path from "path";
 
+import fs from "fs";
+
 // Set storage engine
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "uploads/");
+        const uploadPath = "uploads/";
+        if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath, { recursive: true });
+        }
+        cb(null, uploadPath);
     },
     filename: (req, file, cb) => {
-        cb(null, `${Date.now()}-${file.originalname}`);
+        // Sanitize filename: remove spaces, newlines, and non-ASCII characters
+        const sanitized = file.originalname
+            .replace(/\s+/g, "_")
+            .replace(/[\n\r]/g, "")
+            .replace(/[^\x00-\x7F]/g, "");
+        cb(null, `${Date.now()}-${sanitized}`);
     },
 });
 

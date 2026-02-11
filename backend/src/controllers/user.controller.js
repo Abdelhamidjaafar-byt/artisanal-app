@@ -99,6 +99,33 @@ export const deleteUser = async (req, res, next) => {
         next(error);
     }
 };
+// @desc    Update user avatar
+// @route   PUT /api/users/avatar
+// @access  Private
+export const updateUserAvatar = async (req, res, next) => {
+    try {
+        if (!req.file) {
+            res.status(400);
+            throw new Error("Please upload an image");
+        }
+
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            res.status(404);
+            throw new Error("User not found");
+        }
+
+        user.avatar = `/uploads/${req.file.filename}`;
+        await user.save();
+
+        res.json({
+            avatar: user.avatar
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 // @desc    Get all artisans
 // @route   GET /api/users/artisans
 // @access  Public

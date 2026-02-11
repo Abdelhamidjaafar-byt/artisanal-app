@@ -2,6 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Product } from '../types';
+import { formatImageUrl } from '../utils/imageUtils';
 import { useCart } from '../context/CartContext';
 
 interface ProductCardProps {
@@ -28,7 +29,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       <div className="relative moorish-arch bg-white aspect-[4/5] shadow-sm group-hover:shadow-xl transition-all duration-500 mb-4 border-b-4 border-orange-900/10">
         <div className="absolute inset-2 moorish-arch-inner overflow-hidden bg-orange-50">
           <img
-            src={product.image}
+            src={formatImageUrl(product.image)}
             alt={product.title}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
           />

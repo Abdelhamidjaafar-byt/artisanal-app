@@ -19,7 +19,12 @@ import stripeRoutes from './routes/stripe.routes.js';
 import paypalRoutes from './routes/paypal.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
 import morgan from 'morgan';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { notFound, errorHandler } from './middlewares/error.middleware.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 

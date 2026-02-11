@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { MOCK_PRODUCTS, CRAFT_CATEGORIES } from '../constants';
 import ProductCard from '../components/ProductCard';
 import api from '../services/api';
-import { Product } from '../types';
+import { Product, User, UserRole } from '../types';
+import { formatImageUrl } from '../utils/imageUtils';
 
 const Catalogue: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -21,18 +22,24 @@ const Catalogue: React.FC = () => {
         const response = await api.get(url);
 
         // Map backend products to frontend Product interface
-        const mappedProducts: Product[] = response.data.map((p: any) => ({
-          id: p._id,
-          artisanId: p.artisan?._id || 'unknown',
-          artisanName: p.artisan?.name || 'Artisan Inconnu',
-          title: p.title,
-          description: p.description,
-          price: p.price,
-          category: p.category,
-          image: p.image || 'https://via.placeholder.com/300', // Fallback image
-          isCustomizable: p.isCustomizable,
-          stock: p.stock
-        }));
+        const mappedProducts: Product[] = response.data.map((p: any) => {
+          // Map backend product to frontend Product interface
+          const mainImage = formatImageUrl(p.images?.[0] || p.image);
+          const mappedProduct: Product = {
+            id: p._id,
+            artisanId: p.artisan?._id || 'unknown',
+            artisanName: p.artisan?.name || 'Artisan Inconnu',
+            title: p.title,
+            description: p.description,
+            price: p.price,
+            category: p.category,
+            image: mainImage,
+            images: (p.images || []).map((img: string) => formatImageUrl(img)),
+            isCustomizable: p.isCustomizable,
+            stock: p.stock
+          };
+          return mappedProduct;
+        });
 
         setProducts(mappedProducts);
         setError(null);
