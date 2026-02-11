@@ -418,66 +418,66 @@ const Dashboard: React.FC = () => {
               </div>
 
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-bold text-orange-950 mb-2">Nom complet</label>
-                  <input
-                    type="text"
-                    className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    value={editForm.name}
-                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-orange-950 mb-2">Email</label>
-                  <input
-                    type="email"
-                    className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    value={editForm.email}
-                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-orange-950 mb-2">Téléphone</label>
-                  <input
-                    type="tel"
-                    className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    value={editForm.phone}
-                    onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-orange-950 mb-2">Région</label>
-                  <input
-                    type="text"
-                    className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    value={editForm.region}
-                    onChange={(e) => setEditForm({ ...editForm, region: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-orange-950 mb-2">Adresse</label>
-                  <input
-                    type="text"
-                    className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    value={editForm.address}
-                    onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-bold text-orange-950 mb-2">Nom complet</label>
+                    <input
+                      type="text"
+                      className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500 bg-orange-50/10"
+                      value={editForm.name}
+                      onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-orange-950 mb-2">Email</label>
+                    <input
+                      type="email"
+                      className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500 bg-orange-50/10"
+                      value={editForm.email}
+                      onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-orange-950 mb-2">Téléphone</label>
+                    <input
+                      type="tel"
+                      className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500 bg-orange-50/10"
+                      value={editForm.phone}
+                      onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-orange-950 mb-2">Région</label>
+                    <input
+                      type="text"
+                      className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500 bg-orange-50/10"
+                      value={editForm.region}
+                      onChange={(e) => setEditForm({ ...editForm, region: e.target.value })}
+                    />
+                  </div>
                   <div>
                     <label className="block text-sm font-bold text-orange-950 mb-2">Ville</label>
                     <input
                       type="text"
-                      className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500 bg-orange-50/10"
                       value={editForm.city}
                       onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
                     />
                   </div>
-                  <div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-bold text-orange-950 mb-2">Adresse</label>
+                    <input
+                      type="text"
+                      className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500 bg-orange-50/10"
+                      value={editForm.address}
+                      onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                    />
+                  </div>
+                  <div className="md:col-span-2">
                     <label className="block text-sm font-bold text-orange-950 mb-2">Code postal</label>
                     <input
                       type="text"
-                      className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500 bg-orange-50/10"
                       value={editForm.postalCode}
                       onChange={(e) => setEditForm({ ...editForm, postalCode: e.target.value })}
                     />
@@ -508,54 +508,59 @@ const Dashboard: React.FC = () => {
                 <button onClick={() => setIsAddingProduct(false)} className="text-orange-950 text-2xl">&times;</button>
               </div>
 
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-bold text-orange-950 mb-2">Titre du produit</label>
+              <div className="space-y-8">
+                <div className="space-y-2">
+                  <label className="block text-sm font-bold text-orange-950 ml-1">Titre du produit</label>
                   <input
                     type="text"
-                    className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-5 py-4 rounded-2xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-orange-50/10"
                     placeholder="Ex: Tajine en terre cuite de Salé"
                     value={newProduct.title}
                     onChange={(e) => setNewProduct({ ...newProduct, title: e.target.value })}
                   />
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-bold text-orange-950 mb-2">Catégorie</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-bold text-orange-950 ml-1">Catégorie</label>
                     <select
-                      className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className="w-full px-5 py-4 rounded-2xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-orange-50/10"
                       value={newProduct.category}
                       onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
                     >
                       {CRAFT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
-                  <div>
-                    <label className="block text-sm font-bold text-orange-950 mb-2">Prix (MAD)</label>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-bold text-orange-950 ml-1">Prix (MAD)</label>
                     <input
                       type="number"
-                      className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className="w-full px-5 py-4 rounded-2xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-orange-50/10"
                       value={newProduct.price}
                       onChange={(e) => setNewProduct({ ...newProduct, price: Number(e.target.value) })}
                     />
                   </div>
                 </div>
 
-                <div>
+                <div className="space-y-2">
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-sm font-bold text-orange-950">Description</label>
+                    <label className="text-sm font-bold text-orange-950 ml-1">Description</label>
                     <button
                       onClick={handleGenerateDescription}
                       disabled={aiLoading || !newProduct.title}
-                      className="text-xs bg-orange-700 text-white px-3 py-1 rounded-full hover:bg-orange-800 disabled:bg-gray-300 transition"
+                      className="text-xs bg-orange-700 text-white px-4 py-2 rounded-full hover:bg-orange-800 disabled:bg-gray-300 transition-all shadow-md active:scale-95"
                     >
-                      {aiLoading ? 'Génération...' : '✨ Générer avec l\'IA'}
+                      {aiLoading ? (
+                        <span className="flex items-center gap-1"><span className="animate-spin inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full"></span> Génération...</span>
+                      ) : (
+                        '✨ Générer avec l\'IA'
+                      )}
                     </button>
                   </div>
                   <textarea
                     rows={4}
-                    className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-5 py-4 rounded-2xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-orange-50/10 resize-none"
+                    placeholder="Décrivez votre création, son histoire et sa fabrication..."
                     value={newProduct.description}
                     onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
                   ></textarea>
