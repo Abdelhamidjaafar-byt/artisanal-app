@@ -9,7 +9,8 @@ const Register: React.FC = () => {
         username: '',
         email: '',
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        role: 'CLIENT'
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -37,7 +38,8 @@ const Register: React.FC = () => {
                 name: formData.name,
                 username: formData.username,
                 email: formData.email,
-                password: formData.password
+                password: formData.password,
+                role: formData.role
             });
             navigate('/login');
         } catch (err: any) {
@@ -120,6 +122,20 @@ const Register: React.FC = () => {
                             onChange={handleChange}
                             required
                         />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-semibold text-orange-950 mb-2">S'inscrire en tant que</label>
+                        <select
+                            name="role"
+                            className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500 transition bg-white"
+                            value={formData.role}
+                            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                        >
+                            <option value="CLIENT">Client</option>
+                            <option value="ARTISAN">Artisan</option>
+                            <option value="ADMIN">Administrateur (Mode Test)</option>
+                        </select>
                     </div>
 
                     {error && <p className="text-red-600 text-sm font-medium">{error}</p>}

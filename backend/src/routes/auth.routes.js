@@ -113,7 +113,7 @@ const handleSocialCallback = (req, res) => {
 
   // Redirect to frontend with token and user info
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-  const redirectUrl = `${frontendUrl}/auth/callback?token=${token}&user=${encodeURIComponent(JSON.stringify({
+  const redirectUrl = `${frontendUrl}/#/login-success?token=${token}&user=${encodeURIComponent(JSON.stringify({
     id: user._id,
     name: user.name,
     email: user.email,
