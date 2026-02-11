@@ -10,16 +10,26 @@ import api from '../services/api';
 
 const StatusBadge = ({ status }: { status: OrderStatus }) => {
   const statusLabels = {
+    [OrderStatus.IN_CART]: 'Panier',
     [OrderStatus.PENDING]: 'En attente',
-    [OrderStatus.MANUFACTURING]: 'En fabrication',
-    [OrderStatus.COMPLETED]: 'Terminé',
-    [OrderStatus.DELIVERED]: 'Livré'
+    [OrderStatus.IN_FABRICATION]: 'En fabrication',
+    [OrderStatus.FINISHED]: 'Terminé',
+    [OrderStatus.DELIVERED]: 'Livré',
+    [OrderStatus.PAID]: 'Payé',
+    [OrderStatus.SHIPPED]: 'Expédié',
+    [OrderStatus.CANCELLED]: 'Annulé',
+    [OrderStatus.REFUNDED]: 'Remboursé'
   };
   const styles = {
+    [OrderStatus.IN_CART]: 'bg-gray-100 text-gray-800',
     [OrderStatus.PENDING]: 'bg-yellow-100 text-yellow-800',
-    [OrderStatus.MANUFACTURING]: 'bg-blue-100 text-blue-800',
-    [OrderStatus.COMPLETED]: 'bg-green-100 text-green-800',
+    [OrderStatus.IN_FABRICATION]: 'bg-blue-100 text-blue-800',
+    [OrderStatus.FINISHED]: 'bg-green-100 text-green-800',
     [OrderStatus.DELIVERED]: 'bg-gray-100 text-gray-800',
+    [OrderStatus.PAID]: 'bg-green-50 text-green-700',
+    [OrderStatus.SHIPPED]: 'bg-purple-100 text-purple-800',
+    [OrderStatus.CANCELLED]: 'bg-red-100 text-red-800',
+    [OrderStatus.REFUNDED]: 'bg-red-50 text-red-700',
   };
   return <span className={`px-3 py-1 rounded-full text-xs font-bold ${styles[status]}`}>{statusLabels[status]}</span>;
 };
@@ -82,6 +92,14 @@ const Dashboard: React.FC = () => {
     if (user) {
       fetchOrders();
       fetchNotifications();
+
+      // Poll every 10 seconds to keep data fresh
+      const intervalId = setInterval(() => {
+        fetchOrders();
+        fetchNotifications();
+      }, 10000);
+
+      return () => clearInterval(intervalId);
     }
   }, [user]);
 
@@ -108,7 +126,9 @@ const Dashboard: React.FC = () => {
       alert('Statut mis à jour avec succès');
     } catch (error) {
       console.error('Failed to update status:', error);
-      alert('Erreur lors de la mise à jour du statut');
+      console.error('Failed to update status:', error);
+      // @ts-ignore
+      alert(`Erreur lors de la mise à jour du statut: ${error.response?.data?.message || error.message}`);
     }
   };
 
@@ -577,10 +597,15 @@ const Dashboard: React.FC = () => {
                               : 'bg-white text-orange-800 border border-orange-200 hover:bg-orange-100'
                               }`}
                           >
+                            {status === OrderStatus.IN_CART && 'Panier'}
                             {status === OrderStatus.PENDING && 'En attente'}
-                            {status === OrderStatus.MANUFACTURING && 'En fabrication'}
-                            {status === OrderStatus.COMPLETED && 'Terminé'}
+                            {status === OrderStatus.IN_FABRICATION && 'En fabrication'}
+                            {status === OrderStatus.FINISHED && 'Terminé'}
                             {status === OrderStatus.DELIVERED && 'Livré'}
+                            {status === OrderStatus.PAID && 'Payé'}
+                            {status === OrderStatus.SHIPPED && 'Expédié'}
+                            {status === OrderStatus.CANCELLED && 'Annulé'}
+                            {status === OrderStatus.REFUNDED && 'Remboursé'}
                           </button>
                         ))}
                       </div>
