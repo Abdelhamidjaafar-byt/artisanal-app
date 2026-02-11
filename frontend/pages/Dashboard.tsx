@@ -24,7 +24,11 @@ const Dashboard: React.FC = () => {
     city: user?.city || '',
     postalCode: user?.postalCode || ''
   });
-  const [newProduct, setNewProduct] = useState({ title: '', category: CRAFT_CATEGORIES[0], price: 0, description: '' });
+  const [newProduct, setNewProduct] = useState({ title: '', category: CRAFT_CATEGORIES[0], price: 0, description: '', stock: 0 });
+  const [productImages, setProductImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiAdvice, setAiAdvice] = useState('');
   const [query, setQuery] = useState('');
@@ -42,10 +46,28 @@ const Dashboard: React.FC = () => {
       }
     };
 
+    const fetchProducts = async () => {
+      setLoadingProducts(true);
+      try {
+        const res = await api.get('/products');
+        // Filter products by artisan if user is artisan
+        if (user.role.includes('ARTISAN')) {
+          setProducts(res.data.filter((p: any) => p.artisan?._id === user.id || p.artisan === user.id));
+        } else {
+          setProducts(res.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch products:', error);
+      } finally {
+        setLoadingProducts(false);
+      }
+    };
+
     if (user) {
       fetchOrders();
+      fetchProducts();
     }
-  }, [user]);
+  }, [user, user.id]);
 
   if (!user) return <div className="p-10 text-center">Chargement...</div>;
 
@@ -67,6 +89,65 @@ const Dashboard: React.FC = () => {
       alert('Impossible de charger les détails de la commande');
     } finally {
       setLoadingOrderDetail(false);
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files: File[] = Array.from(e.target.files);
+      setProductImages(prev => [...prev, ...files]);
+
+      const newPreviews = files.map((file: File) => URL.createObjectURL(file));
+      setImagePreviews(prev => [...prev, ...newPreviews]);
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setProductImages(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => {
+      URL.revokeObjectURL(prev[index]);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  const handleSubmitProduct = async () => {
+    if (!newProduct.title || !newProduct.price || productImages.length === 0) {
+      alert('Veuillez remplir les champs obligatoires et ajouter au moins une image.');
+      return;
+    }
+
+    setAiLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('title', newProduct.title);
+      formData.append('category', newProduct.category);
+      formData.append('price', newProduct.price.toString());
+      formData.append('description', newProduct.description);
+      formData.append('stock', newProduct.stock.toString());
+
+      productImages.forEach(image => {
+        formData.append('images', image);
+      });
+
+      await api.post('/products', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      setIsAddingProduct(false);
+      setNewProduct({ title: '', category: CRAFT_CATEGORIES[0], price: 0, description: '', stock: 0 });
+      setProductImages([]);
+      setImagePreviews([]);
+
+      // Refresh products
+      const res = await api.get('/products');
+      if (user.role.includes('ARTISAN')) {
+        setProducts(res.data.filter((p: any) => p.artisan?._id === user.id || p.artisan === user.id));
+      }
+    } catch (error) {
+      console.error('Failed to add product:', error);
+      alert('Erreur lors de la publication du produit.');
+    } finally {
+      setAiLoading(false);
     }
   };
 
@@ -191,17 +272,27 @@ const Dashboard: React.FC = () => {
           {user.role === UserRole.ARTISAN && (
             <section className="bg-white p-6 rounded-3xl shadow-sm border border-orange-50">
               <h2 className="text-2xl font-heritage font-bold text-orange-950 mb-6">Mon Catalogue</h2>
-              <div className="grid sm:grid-cols-2 gap-4">
-                {MOCK_PRODUCTS.filter(p => p.artisanId === user.id).map(prod => (
-                  <div key={prod.id} className="flex gap-4 p-4 border border-orange-50 rounded-2xl">
-                    <img src={prod.image} className="w-20 h-20 rounded-lg object-cover" alt="" />
-                    <div className="flex flex-col justify-center">
-                      <h4 className="font-bold text-orange-950">{prod.title}</h4>
-                      <p className="text-sm text-orange-700 font-bold">{prod.price} MAD</p>
+              {loadingProducts ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-orange-700 mx-auto"></div>
+                </div>
+              ) : products.length === 0 ? (
+                <div className="text-center py-8 text-orange-800/60">
+                  <p>Aucun produit dans votre catalogue</p>
+                </div>
+              ) : (
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {products.map(prod => (
+                    <div key={prod._id} className="flex gap-4 p-4 border border-orange-50 rounded-2xl">
+                      <img src={prod.images?.[0] || prod.image} className="w-20 h-20 rounded-lg object-cover" alt="" />
+                      <div className="flex flex-col justify-center">
+                        <h4 className="font-bold text-orange-950">{prod.title}</h4>
+                        <p className="text-sm text-orange-700 font-bold">{prod.price} MAD</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </section>
           )}
         </div>
@@ -373,7 +464,7 @@ const Dashboard: React.FC = () => {
                 />
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-bold text-orange-950 mb-2">Catégorie</label>
                   <select
@@ -393,6 +484,39 @@ const Dashboard: React.FC = () => {
                     onChange={(e) => setNewProduct({ ...newProduct, price: Number(e.target.value) })}
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-bold text-orange-950 mb-2">Stock</label>
+                  <input
+                    type="number"
+                    className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    value={newProduct.stock}
+                    onChange={(e) => setNewProduct({ ...newProduct, stock: Number(e.target.value) })}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-orange-950 mb-2">Images du produit (Perspectives)</label>
+                <div className="grid grid-cols-4 gap-4 mb-4">
+                  {imagePreviews.map((url, index) => (
+                    <div key={index} className="relative aspect-square">
+                      <img src={url} className="w-full h-full object-cover rounded-xl" alt="" />
+                      <button
+                        onClick={() => removeImage(index)}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  ))}
+                  {imagePreviews.length < 5 && (
+                    <label className="aspect-square border-2 border-dashed border-orange-100 rounded-xl flex items-center justify-center cursor-pointer hover:border-orange-300 transition">
+                      <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageChange} />
+                      <span className="text-2xl text-orange-300">+</span>
+                    </label>
+                  )}
+                </div>
+                <p className="text-xs text-orange-800/60">Ajoutez jusqu'à 5 images (face, profil, détails, situation).</p>
               </div>
 
               <div>
@@ -416,10 +540,11 @@ const Dashboard: React.FC = () => {
 
               <div className="pt-4 border-t border-orange-50">
                 <button
-                  className="w-full bg-orange-800 text-white py-4 rounded-xl font-bold hover:bg-orange-900 transition shadow-lg"
-                  onClick={() => setIsAddingProduct(false)}
+                  className="w-full bg-orange-800 text-white py-4 rounded-xl font-bold hover:bg-orange-900 transition shadow-lg disabled:bg-orange-300"
+                  onClick={handleSubmitProduct}
+                  disabled={aiLoading}
                 >
-                  Publier l'œuvre
+                  {aiLoading ? 'Publication...' : "Publier l'œuvre"}
                 </button>
               </div>
             </div>

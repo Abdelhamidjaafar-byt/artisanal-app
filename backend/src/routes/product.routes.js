@@ -37,10 +37,10 @@ router.get("/", getProducts);
 router.get("/:id", getProductById);
 
 // Artisan: Create product (MUST be approved)
-router.post("/", verifyToken, authorize("ARTISAN", "ADMIN"), checkApproved, productValidation, createProduct);
+router.post("/", verifyToken, authorize("ARTISAN", "ADMIN"), checkApproved, upload.array("images", 5), productValidation, createProduct);
 
 // Owner: Update/Delete
-router.put("/:id", verifyToken, authorize("ARTISAN", "ADMIN"), productValidation, updateProduct);
+router.put("/:id", verifyToken, authorize("ARTISAN", "ADMIN"), upload.array("images", 5), productValidation, updateProduct);
 router.delete("/:id", verifyToken, authorize("ARTISAN"), deleteProduct);
 
 export default router;
