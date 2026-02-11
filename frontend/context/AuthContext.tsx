@@ -8,6 +8,7 @@ interface AuthContextType {
   login: (email: string, password?: string) => Promise<boolean>;
   logout: () => void;
   updateUser: (data: Partial<User>) => Promise<void>;
+  setAuthData: (user: User, token: string) => void;
   isAuthenticated: boolean;
   loading: boolean;
 }
@@ -83,6 +84,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const setAuthData = React.useCallback((userToSet: User, token: string) => {
+    setUser(userToSet);
+    setLoading(false);
+    localStorage.setItem('artisan_token', token);
+    localStorage.setItem('artisan_auth', JSON.stringify(userToSet));
+  }, []);
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('artisan_auth');
@@ -90,7 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, updateUser, isAuthenticated: !!user, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser, setAuthData, isAuthenticated: !!user, loading }}>
       {children}
     </AuthContext.Provider>
   );

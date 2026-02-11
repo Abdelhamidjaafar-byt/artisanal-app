@@ -21,7 +21,7 @@ const Login: React.FC = () => {
   };
 
   const handleOAuthLogin = (provider: 'google' | 'facebook') => {
-    window.location.href = `http://localhost:3000/${provider}`;
+    window.location.href = `http://localhost:3000/auth/${provider}`;
   };
 
   return (

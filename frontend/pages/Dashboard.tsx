@@ -101,8 +101,21 @@ const Dashboard: React.FC = () => {
           <p className="text-orange-800/60 font-medium">Tableau de bord {user.role.toLowerCase()}</p>
         </div>
         <div className="flex gap-4">
+          {user.role === UserRole.ADMIN && (
+            <Link
+              to="/admin"
+              className="bg-orange-950 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-900 transition shadow-md"
+            >
+              Console Admin
+            </Link>
+          )}
           {user.role === UserRole.ARTISAN && (
             <>
+              {!user.isApproved && (
+                <div className="bg-orange-100 border border-orange-200 text-orange-800 px-6 py-3 rounded-xl font-medium animate-pulse">
+                  ⚠️ Compte en attente d'approbation par l'administrateur.
+                </div>
+              )}
               <Link
                 to={`/artisan/${user.id}`}
                 className="bg-white text-orange-950 border-2 border-orange-950 px-6 py-3 rounded-xl font-bold hover:bg-orange-50 transition"
@@ -111,7 +124,8 @@ const Dashboard: React.FC = () => {
               </Link>
               <button
                 onClick={() => setIsAddingProduct(true)}
-                className="bg-orange-700 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-800 transition shadow-md"
+                disabled={!user.isApproved}
+                className="bg-orange-700 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-800 transition shadow-md disabled:bg-gray-300 disabled:cursor-not-allowed"
               >
                 + Nouveau Produit
               </button>
