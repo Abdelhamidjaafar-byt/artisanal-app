@@ -8,54 +8,62 @@ import { sendOrderStatusEmail } from "../utils/email.service.js";
 export const createOrder = async (req, res, next) => {
     console.log("Order creation initiated with body:", JSON.stringify(req.body, null, 2));
     try {
-        const { orderItems: items, shippingAddress, paymentInfo } = req.body;
+        const { items, shippingAddress, paymentInfo } = req.body;
 
-        if (!items || items.length === 0) {
-            res.status(400);
-            throw new Error("No items in order");
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({ message: "No items in order" });
         }
 
-        let totalAmount = 0;
-        const orderItems = [];
-
-        let artisanId = null;
-
-        // Validate products and calculate total
+        // Group items by artisan
+        const itemsByArtisan = {};
         for (const item of items) {
-            const product = await Product.findById(item.product);
+            const product = await Product.findById(item.product).populate('artisan');
             if (!product) {
-                res.status(404);
-                throw new Error(`Product not found: ${item.product}`);
-            }
-            // Capture artisan ID from the first product (assuming single artisan per order for now)
-            if (!artisanId) artisanId = product.artisan;
-
-            if (product.stock < item.quantity) {
-                res.status(400);
-                throw new Error(`Insufficient stock for product: ${product.title}`);
+                return res.status(404).json({ message: `Product ${item.product} not found` });
             }
 
-            totalAmount += product.price * item.quantity;
-            orderItems.push({
+            const artisanId = product.artisan?._id?.toString() || product.artisan?.toString();
+            if (!artisanId) {
+                return res.status(400).json({ message: `Product ${product.title} has no associated artisan` });
+            }
+
+            if (!itemsByArtisan[artisanId]) {
+                itemsByArtisan[artisanId] = [];
+            }
+
+            itemsByArtisan[artisanId].push({
                 product: product._id,
                 quantity: item.quantity,
-                customizationDetails: item.customizationDetails,
-                price: product.price // Added price to satisfy schema requirement
+                customizationDetails: item.customizationDetails || "",
+                price: product.price
             });
         }
 
-        const order = await Order.create({
-            client: req.user.id,
-            items: orderItems,
-            totalAmount,
-            shippingAddress,
-            paymentInfo,
-            status: "IN_CART", // Default to cart, or "pending" if immediate order
-            artisan: artisanId
-        });
+        const orders = [];
+        for (const artisanId in itemsByArtisan) {
+            const artisanItems = itemsByArtisan[artisanId];
+            const totalAmount = artisanItems.reduce((sum, i) => sum + (i.price * i.quantity), 0);
 
-        res.status(201).json(order);
+            const order = await Order.create({
+                client: req.user.id,
+                artisan: artisanId,
+                items: artisanItems,
+                totalAmount,
+                shippingAddress,
+                paymentInfo: {
+                    method: paymentInfo?.method || 'stripe',
+                    status: 'pending'
+                },
+                status: "IN_CART"
+            });
+            orders.push(order);
+        }
+
+        // Return the first order (or all if frontend can handle it)
+        // For now, return the first one so Stripe Checkout works for at least one artisan
+        res.status(201).json(orders.length === 1 ? orders[0] : { orders, _id: orders[0]._id });
     } catch (error) {
+        console.error("Order completion error:", error);
         next(error);
     }
 };
@@ -168,7 +176,7 @@ export const updateOrder = async (req, res, next) => {
             throw new Error("Cannot update order after it is processing");
         }
 
-        const { orderItems: items, shippingAddress } = req.body;
+        const { items, shippingAddress } = req.body;
 
         if (shippingAddress) order.shippingAddress = shippingAddress;
 

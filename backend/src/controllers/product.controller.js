@@ -20,15 +20,19 @@ export const createProduct = async (req, res, next) => {
 // GET ALL PRODUCTS (PUBLIC)
 export const getProducts = async (req, res, next) => {
     try {
-        const { category, artisanId } = req.query;
+        const { category, keyword } = req.query;
         let query = {};
 
         if (category) {
             query.category = category;
         }
 
-        if (artisanId) {
-            query.artisan = artisanId;
+        if (keyword) {
+            query.$or = [
+                { title: { $regex: keyword, $options: "i" } },
+                { description: { $regex: keyword, $options: "i" } },
+                { category: { $regex: keyword, $options: "i" } }
+            ];
         }
 
         const products = await Product.find(query)

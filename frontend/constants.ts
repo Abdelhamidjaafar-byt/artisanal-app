@@ -1,6 +1,5 @@
 
 import { Product, User, UserRole, OrderStatus, Order } from './types';
-
 export const CRAFT_CATEGORIES = [
   'Tissage (زرابي)',
   'Poterie et Céramique (خزف وفخار)',

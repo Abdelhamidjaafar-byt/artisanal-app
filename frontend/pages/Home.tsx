@@ -21,15 +21,15 @@ import tannageImg from '../assets/Tannage.jpeg';
 
 const CATEGORY_IMAGES: Record<string, string> = {
   'Tissage (زرابي)': tissageImg,
-  'Poterie et Céramique': poterieImg,
+  'Poterie et Céramique (خزف وفخار)': poterieImg,
   'Dinanderie (نحاس)': dinanderieImg,
-  'Menuiserie Traditionnelle': menuiserieImg,
-  'Broderie Artisanale': broderieImg,
-  'Couture (Kaftan & Djellaba)': coutureImg,
-  'Maroquinerie': maroquinerieImg,
-  'Zellige': zelligeImg,
-  'Ferronnerie': ferronnerieImg,
-  'Tannage': tannageImg,
+  'Menuiserie Traditionnelle (نجارة تقليدية)': menuiserieImg,
+  'Broderie Artisanale (طرز تقليدي)': broderieImg,
+  'Couture (Kaftan & Djellaba) (خياطة تقليدية)': coutureImg,
+  'Maroquinerie (صناعة الجلود)': maroquinerieImg,
+  'Zellige (زليج)': zelligeImg,
+  'Ferronnerie (حدادة فنية)': ferronnerieImg,
+  'Tannage (دباغة)': tannageImg,
 };
 
 const Home: React.FC = () => {
@@ -81,32 +81,59 @@ const Home: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-16 pb-16">
+      <style>{`
+        @keyframes slideCarousel {
+          from { transform: translateX(0); }
+          to { transform: translateX(-50%); }
+        }
+        .animate-slide {
+          display: flex;
+          width: max-content;
+          animation: slideCarousel 40s linear infinite;
+          will-change: transform;
+        }
+        .animate-slide:hover {
+          animation-play-state: paused;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
       {/* Hero Section */}
-      <section className="relative h-[85vh] flex items-center justify-center text-center px-4 overflow-hidden">
+      <section className="relative h-[90vh] flex items-center justify-center px-4 overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
             src="https://images.unsplash.com/photo-1539020140153-e479b8c22e70?auto=format&fit=crop&w=1600&q=80"
             alt="Maroc Artisanat"
-            className="w-full h-full object-cover opacity-40 scale-105"
+            className="w-full h-full object-cover scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#fdfbf7] via-transparent to-orange-100/20"></div>
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-orange-950/20 via-transparent to-[#0d0e12]"></div>
         </div>
 
-        <div className="relative z-10 max-w-4xl px-4">
-          <span className="text-orange-700 font-bold tracking-[0.3em] uppercase mb-4 block animate-fade-in">L'Héritage Vivant</span>
-          <h1 className="text-6xl md:text-8xl font-heritage font-black text-orange-950 mb-8 leading-tight">
-            L'excellence du <br /> <span className="text-orange-700 italic">Fait-Main</span>
-          </h1>
-          <p className="text-xl md:text-2xl text-orange-900/80 mb-12 max-w-2xl mx-auto font-light leading-relaxed">
-            Plongez dans l'univers des maîtres artisans marocains. Une collection exclusive de trésors authentiques, directement de leurs mains aux vôtres.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <Link to="/catalogue" className="bg-orange-800 text-white px-12 py-5 rounded-full font-bold hover:bg-orange-950 transition shadow-xl text-lg hover:-translate-y-1 transform duration-300">
-              Explorer le Catalogue
-            </Link>
-            <Link to="/login" className="bg-white/80 backdrop-blur-sm text-orange-900 border-2 border-orange-900/20 px-12 py-5 rounded-full font-bold hover:bg-white transition text-lg shadow-sm">
-              Espace Artisan
-            </Link>
+        <div className="relative z-10 max-w-5xl w-full">
+          <div className="glass p-12 md:p-20 rounded-[40px] md:rounded-[80px] border-white/10 shadow-2xl animate-fade-in mx-auto text-center border-t-white/30">
+            <h1 className="text-5xl md:text-8xl font-heritage text-white mb-8 leading-[1.1]">
+              L'excellence du <br />
+              <span className="italic font-light">Fait-Main</span>
+            </h1>
+            <p className="text-lg md:text-2xl text-white/80 mb-12 max-w-2xl mx-auto font-light leading-relaxed">
+              Plongez dans l'univers des maîtres artisans marocains. <br className="hidden md:block" />
+              Une collection exclusive de trésors authentiques, directement de leurs mains aux vôtres.
+            </p>
+            <div className="flex justify-center">
+              <Link to="/catalogue" className="group relative bg-[#e67e22] text-white px-10 py-5 rounded-full font-bold transition-all duration-500 hover:shadow-[0_0_30px_rgba(230,126,34,0.4)] overflow-hidden">
+                <span className="relative z-10 flex items-center gap-2">
+                  Explorer le Catalogue
+                  <svg className="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -119,11 +146,32 @@ const Home: React.FC = () => {
               <h2 className="text-4xl font-heritage font-bold text-orange-950">Nos Métiers d'Excellence</h2>
               <div className="h-1 w-24 bg-orange-700 mt-2 rounded-full"></div>
             </div>
+            {/* Carousel Navigation Arrows */}
+            <div className="flex gap-4">
+              <button
+                onClick={() => scroll('left')}
+                className="group w-14 h-14 rounded-full border-2 border-orange-200 flex items-center justify-center text-orange-900 hover:bg-orange-800 hover:border-orange-800 hover:text-white transition-all duration-300 shadow-sm active:scale-95"
+                aria-label="Précédent"
+              >
+                <svg className="w-6 h-6 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button
+                onClick={() => scroll('right')}
+                className="group w-14 h-14 rounded-full border-2 border-orange-200 flex items-center justify-center text-orange-900 hover:bg-orange-800 hover:border-orange-800 hover:text-white transition-all duration-300 shadow-sm active:scale-95"
+                aria-label="Suivant"
+              >
+                <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           <div
             ref={carouselRef}
-            className="overflow-hidden pb-8 pt-2"
+            className="overflow-x-auto pb-8 pt-2 relative no-scrollbar"
           >
             <div className="flex gap-6 animate-slide w-max">
               {/* Direct categories and duplicated categories for seamless loop */}
@@ -140,7 +188,6 @@ const Home: React.FC = () => {
                 >
                   <div className="absolute inset-0 bg-orange-950/40 group-hover/card:bg-orange-950/60 transition-colors duration-500"></div>
                   <div className="relative z-10">
-                    {/* <div className="text-4xl mb-4 transform group-hover/card:scale-125 transition-transform duration-500">✨</div> */}
                     <p className="text-white font-heritage font-bold text-xl leading-snug drop-shadow-md">{cat}</p>
                     <p className="text-orange-200 text-xs mt-4 font-bold uppercase tracking-widest opacity-0 group-hover/card:opacity-100 transition-opacity">Découvrir</p>
                   </div>

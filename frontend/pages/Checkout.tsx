@@ -74,9 +74,10 @@ const Checkout: React.FC = () => {
             if (stripeRes.data.url) {
                 window.location.href = stripeRes.data.url;
             }
-        } catch (error) {
-            console.error('Payment failed:', error);
-            showNotification('Le paiement a échoué. Veuillez réessayer.', 'error');
+        } catch (error: any) {
+            console.error('Payment failed:', error.response?.data || error.message);
+            const message = error.response?.data?.message || 'Le paiement a échoué. Veuillez réessayer.';
+            showNotification(message, 'error');
         } finally {
             setLoading(false);
         }

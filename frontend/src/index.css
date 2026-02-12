@@ -91,6 +91,13 @@ h3,
   -webkit-text-fill-color: transparent;
 }
 
+.golden-text-vibrant {
+  background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 /* Zellige card styling */
 .zellige-card {
   background: var(--surface);
@@ -174,17 +181,20 @@ h3,
 }
 
 @keyframes slideCarousel {
-  0% {
+  from {
     transform: translateX(0);
   }
 
-  100% {
+  to {
     transform: translateX(-50%);
   }
 }
 
 .animate-slide {
-  animation: slideCarousel 20s linear infinite;
+  display: flex;
+  width: max-content;
+  animation: slideCarousel 40s linear infinite;
+  will-change: transform;
 }
 
 /* Moorish Arch Utilities */
@@ -222,4 +232,8 @@ h3,
 
 .animate-slide {
   animation: slideCarousel 20s linear infinite;
+}
+
+.animate-slide:hover {
+  animation-play-state: paused;
 }

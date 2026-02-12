@@ -24,4 +24,4 @@ router.put("/avatar", verifyToken, upload.single("avatar"), updateUserAvatar);
 router.get("/", verifyToken, authorize("ADMIN"), getUsers);
 router.delete("/:id", verifyToken, deleteUser); // Check for self or admin happens in controller
 
-export default router;
+export default router; 

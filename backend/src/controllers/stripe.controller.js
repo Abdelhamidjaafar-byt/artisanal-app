@@ -5,22 +5,24 @@ import { emitToUser } from '../socket.js';
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export const createCheckoutSession = async (req, res) => {
+    console.log("Stripe: Creating session for order ID:", req.body.orderId);
     try {
         const { orderId } = req.body;
         const order = await Order.findById(orderId).populate('items.product');
 
         if (!order) {
-            return res.status(404).json({ message: 'Order not found' });
+            console.warn("Stripe: Order not found!", orderId);
+            return res.status(404).json({ message: 'Commande introuvable' });
         }
 
         const line_items = order.items.map((item) => ({
             price_data: {
                 currency: 'mad',
                 product_data: {
-                    name: item.product?.name || 'Authentic Moroccan Product',
+                    name: item.product?.title || 'Produit Artisanal',
                     images: item.product?.images || [],
                 },
-                unit_amount: Math.round(item.product?.price * 100) || Math.round(order.totalAmount * 100),
+                unit_amount: Math.round((item.price || item.product?.price || 0) * 100),
             },
             quantity: item.quantity || 1,
         }));
@@ -29,8 +31,8 @@ export const createCheckoutSession = async (req, res) => {
             payment_method_types: ['card'],
             line_items,
             mode: 'payment',
-            success_url: `${process.env.FRONTEND_URL}/order/success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${process.env.FRONTEND_URL}/order/cancel`,
+            success_url: `${process.env.FRONTEND_URL}/#/order-success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${process.env.FRONTEND_URL}/#/order-cancel`,
             metadata: {
                 orderId: order._id.toString(),
             },
@@ -88,4 +90,20 @@ export const stripeWebhook = async (req, res) => {
     }
 
     res.json({ received: true });
+};
+
+export const verifySession = async (req, res) => {
+    try {
+        const { sessionId } = req.params;
+        const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+        if (session.payment_status === 'paid') {
+            res.json({ paymentStatus: 'paid' });
+        } else {
+            res.json({ paymentStatus: session.payment_status });
+        }
+    } catch (error) {
+        console.error('Verify Session Error:', error);
+        res.status(500).json({ message: error.message });
+    }
 };

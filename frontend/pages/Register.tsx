@@ -56,134 +56,137 @@ const Register: React.FC = () => {
     };
 
     return (
-        <div className="min-h-[80vh] flex items-center justify-center px-4">
-            <div className={`bg-white p-8 md:p-12 rounded-3xl shadow-xl w-full max-w-md border border-orange-50 transition-all duration-300 ${shake ? 'animate-shake' : ''}`}>
-                <div className="text-center mb-10">
-                    <h1 className="text-3xl font-heritage font-bold text-orange-950 mb-2">Créer un compte</h1>
-                    <p className="text-gray-500">Rejoignez notre communauté artisanale</p>
+        <div className="min-h-[90vh] flex items-center justify-center px-4 py-12">
+            <div className="bg-white p-8 md:p-12 rounded-[40px] shadow-2xl w-full max-w-2xl border border-orange-50 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-400 via-orange-600 to-orange-800"></div>
+
+                <div className="text-center mb-12">
+                    <h1 className="text-4xl font-heritage font-bold text-orange-950 mb-3">Créer un compte</h1>
+                    <p className="text-orange-900/40 italic">Rejoignez notre communauté d'artisans d'excellence</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-8">
+                    {/* Role Selection - Full Width Span */}
+                    <div className="md:col-span-2 space-y-4">
+                        <label className="block text-sm font-bold text-orange-950 ml-1 text-center">S'inscrire en tant que</label>
+                        <div className="grid grid-cols-2 gap-4">
+                            <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, role: 'CLIENT' })}
+                                className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${formData.role === 'CLIENT'
+                                    ? 'border-orange-600 bg-orange-50 text-orange-950 shadow-md'
+                                    : 'border-orange-100 text-gray-400 hover:border-orange-200'
+                                    }`}
+                            >
+                                <span className="text-2xl">🛍️</span>
+                                <span className="font-bold text-sm">Client</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, role: 'ARTISAN' })}
+                                className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${formData.role === 'ARTISAN'
+                                    ? 'border-orange-600 bg-orange-50 text-orange-950 shadow-md'
+                                    : 'border-orange-100 text-gray-400 hover:border-orange-200'
+                                    }`}
+                            >
+                                <span className="text-2xl">🏺</span>
+                                <span className="font-bold text-sm">Artisan</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                        {/* Row 1: Name & Username */}
+                        <div className="space-y-2">
+                            <label className="block text-sm font-bold text-orange-950 ml-1">Nom complet</label>
+                            <input
+                                type="text"
+                                name="name"
+                                className="w-full px-5 py-4 rounded-2xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-orange-50/10"
+                                placeholder="Votre nom complet"
+                                value={formData.name}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="block text-sm font-bold text-orange-950 ml-1">Nom d'utilisateur</label>
+                            <input
+                                type="text"
+                                name="username"
+                                className="w-full px-5 py-4 rounded-2xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-orange-50/10"
+                                placeholder="Identifiant unique"
+                                value={formData.username}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+
+                        {/* Row 2: Email & Role Label (Occupies 1 col, but role UI is below) */}
+                        <div className="md:col-span-2 space-y-2">
+                            <label className="block text-sm font-bold text-orange-950 ml-1">Email</label>
+                            <input
+                                type="email"
+                                name="email"
+                                className="w-full px-5 py-4 rounded-2xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-orange-50/10"
+                                placeholder="votre@email.com"
+                                value={formData.email}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+
+
+
+                        {/* Row 4: Passwords */}
+                        <div className="space-y-2">
+                            <label className="block text-sm font-bold text-orange-950 ml-1">Mot de passe</label>
+                            <input
+                                type="password"
+                                name="password"
+                                className="w-full px-5 py-4 rounded-2xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-orange-50/10"
+                                placeholder="••••••••"
+                                value={formData.password}
+                                onChange={handleChange}
+                                minLength={6}
+                                required
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="block text-sm font-bold text-orange-950 ml-1">Confirmation</label>
+                            <input
+                                type="password"
+                                name="confirmPassword"
+                                className="w-full px-5 py-4 rounded-2xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-orange-50/10"
+                                placeholder="••••••••"
+                                value={formData.confirmPassword}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+                    </div>
+
                     {error && (
-                        <div className="bg-red-50 border border-red-100 p-4 rounded-xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                            <div className="bg-red-500 text-white rounded-full p-1 mt-0.5">
-                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </div>
-                            <div className="flex-1">
-                                <p className="text-red-800 text-sm font-bold">Erreur d'inscription</p>
-                                <p className="text-red-700 text-sm opacity-90">{error}</p>
-                            </div>
+                        <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-medium border border-red-100 flex items-center gap-2">
+                            <span>⚠️</span> {error}
                         </div>
                     )}
-                    <div>
-                        <label className="block text-sm font-semibold text-orange-950 mb-2">Nom complet</label>
-                        <input
-                            type="text"
-                            name="name"
-                            className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500 transition disabled:bg-gray-50"
-                            placeholder="Votre nom complet"
-                            value={formData.name}
-                            onChange={handleChange}
-                            required
-                            disabled={loading}
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-semibold text-orange-950 mb-2">Nom d'utilisateur</label>
-                        <input
-                            type="text"
-                            name="username"
-                            className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500 transition disabled:bg-gray-50"
-                            placeholder="Votre nom d'utilisateur"
-                            value={formData.username}
-                            onChange={handleChange}
-                            required
-                            disabled={loading}
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-semibold text-orange-950 mb-2">Email</label>
-                        <input
-                            type="email"
-                            name="email"
-                            className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500 transition disabled:bg-gray-50"
-                            placeholder="votre@email.com"
-                            value={formData.email}
-                            onChange={handleChange}
-                            required
-                            disabled={loading}
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-semibold text-orange-950 mb-2">Mot de passe</label>
-                        <input
-                            type="password"
-                            name="password"
-                            className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500 transition disabled:bg-gray-50"
-                            placeholder="Votre mot de passe"
-                            value={formData.password}
-                            onChange={handleChange}
-                            minLength={6}
-                            required
-                            disabled={loading}
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-semibold text-orange-950 mb-2">Confirmer le mot de passe</label>
-                        <input
-                            type="password"
-                            name="confirmPassword"
-                            className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500 transition disabled:bg-gray-50"
-                            placeholder="Confirmez votre mot de passe"
-                            value={formData.confirmPassword}
-                            onChange={handleChange}
-                            required
-                            disabled={loading}
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-semibold text-orange-950 mb-2">S'inscrire en tant que</label>
-                        <select
-                            name="role"
-                            className="w-full px-4 py-3 rounded-xl border border-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500 transition bg-white disabled:bg-gray-50"
-                            value={formData.role}
-                            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                            disabled={loading}
-                        >
-                            <option value="CLIENT">Client</option>
-                            <option value="ARTISAN">Artisan</option>
-                            <option value="ADMIN">Administrateur (Mode Test)</option>
-                        </select>
-                    </div>
 
                     <button
                         type="submit"
                         disabled={loading}
-                        className={`w-full bg-orange-700 text-white py-4 rounded-xl font-bold transition shadow-lg flex items-center justify-center gap-2 ${loading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-orange-800'}`}
+                        className="w-full bg-orange-700 text-white py-5 rounded-2xl font-bold hover:bg-orange-800 transition-all shadow-xl hover:shadow-orange-900/20 hover:-translate-y-0.5 transform active:scale-[0.98] disabled:opacity-50 text-lg"
                     >
-                        {loading ? (
-                            <>
-                                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/20 border-t-white"></div>
-                                Inscription...
-                            </>
-                        ) : (
-                            'S\'inscrire'
-                        )}
+                        {loading ? 'Création du compte...' : "S'inscrire Maintenant"}
                     </button>
                 </form>
 
-                <div className="mt-6 text-center">
+                <div className="mt-8 text-center border-t border-orange-50 pt-8">
                     <p className="text-gray-500">
-                        Déjà un compte?{' '}
-                        <Link to="/login" className="text-orange-700 font-bold hover:underline">
-                            Se connecter
+                        Déjà membre ?{' '}
+                        <Link to="/login" className="text-orange-700 font-bold hover:text-orange-900 transition-colors">
+                            Se connecter ici
                         </Link>
                     </p>
                 </div>
