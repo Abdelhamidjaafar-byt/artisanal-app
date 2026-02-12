@@ -232,10 +232,13 @@ const Dashboard: React.FC = () => {
       setImagePreviews([]);
 
       // Refresh products
-      const res = await api.get('/products');
-      if (user.role.includes('ARTISAN')) {
-        setProducts(res.data.filter((p: any) => p.artisan?._id === user.id || p.artisan === user.id));
-      }
+      const res = await api.get(`/products?artisanId=${user.id}`);
+      const mappedProducts = res.data.map((p: any) => ({
+        ...p,
+        id: p._id,
+        image: formatImageUrl(p.images?.[0] || p.image)
+      }));
+      setProducts(mappedProducts);
     } catch (error) {
       console.error('Failed to add product:', error);
       alert('Erreur lors de la publication du produit.');
@@ -277,7 +280,12 @@ const Dashboard: React.FC = () => {
       setLoadingProducts(true);
       try {
         const res = await api.get(`/products?artisanId=${user.id}`);
-        setProducts(res.data);
+        const mappedProducts = res.data.map((p: any) => ({
+          ...p,
+          id: p._id,
+          image: formatImageUrl(p.images?.[0] || p.image)
+        }));
+        setProducts(mappedProducts);
       } catch (error) {
         console.error('Failed to fetch my products:', error);
       } finally {
