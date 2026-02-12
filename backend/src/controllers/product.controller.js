@@ -20,11 +20,19 @@ export const createProduct = async (req, res, next) => {
 // GET ALL PRODUCTS (PUBLIC)
 export const getProducts = async (req, res, next) => {
     try {
-        const { category, keyword, artisan, minPrice, maxPrice } = req.query;
+        const { category, keyword, artisan, minPrice, maxPrice, material, sortBy, isCustomizable } = req.query;
         let query = {};
 
         if (category) {
             query.category = category;
+        }
+
+        if (material) {
+            query.material = material;
+        }
+
+        if (isCustomizable === "true") {
+            query.isCustomizable = true;
         }
 
         if (artisan) {
@@ -45,9 +53,16 @@ export const getProducts = async (req, res, next) => {
             ];
         }
 
+        // Sorting logic
+        let sortOptions = { createdAt: -1 }; // Default: newest first
+        if (sortBy === "price-asc") sortOptions = { price: 1 };
+        else if (sortBy === "price-desc") sortOptions = { price: -1 };
+        else if (sortBy === "rating") sortOptions = { averageRating: -1 };
+        else if (sortBy === "newest") sortOptions = { createdAt: -1 };
+
         const products = await Product.find(query)
             .populate("artisan", "name email artisanProfile")
-            .sort({ createdAt: -1 });
+            .sort(sortOptions);
 
         res.json(products);
     } catch (error) {

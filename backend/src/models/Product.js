@@ -48,6 +48,9 @@ const productSchema = new mongoose.Schema(
 
             ], // Categories translated from the requirements 
         },
+        material: {
+            type: String, // e.g., "Laine naturelle", "Argile", "Cuir"
+        },
         isCustomizable: {
             type: Boolean,
             default: false, // For "Possibilité de personnalisation" 
