@@ -20,7 +20,13 @@ export const createProduct = async (req, res, next) => {
 // GET ALL PRODUCTS (PUBLIC)
 export const getProducts = async (req, res, next) => {
     try {
-        const { category, keyword, artisan, minPrice, maxPrice, material, sortBy, isCustomizable } = req.query;
+        const { category, keyword, artisan, minPrice, maxPrice, material, sortBy, isCustomizable, region } = req.query;
+
+        // Pagination logic
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 8;
+        const skip = (page - 1) * limit;
+
         let query = {};
 
         if (category) {
@@ -29,6 +35,10 @@ export const getProducts = async (req, res, next) => {
 
         if (material) {
             query.material = material;
+        }
+
+        if (region) {
+            query.region = region;
         }
 
         if (isCustomizable === "true") {
@@ -60,11 +70,19 @@ export const getProducts = async (req, res, next) => {
         else if (sortBy === "rating") sortOptions = { averageRating: -1 };
         else if (sortBy === "newest") sortOptions = { createdAt: -1 };
 
+        const total = await Product.countDocuments(query);
         const products = await Product.find(query)
             .populate("artisan", "name email artisanProfile")
-            .sort(sortOptions);
+            .sort(sortOptions)
+            .limit(limit)
+            .skip(skip);
 
-        res.json(products);
+        res.json({
+            products,
+            page,
+            pages: Math.ceil(total / limit),
+            total
+        });
     } catch (error) {
         next(error);
     }

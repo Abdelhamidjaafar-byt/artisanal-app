@@ -21,7 +21,6 @@ import paypalRoutes from './routes/paypal.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
 import analyticsRoutes from './routes/analytics.routes.js';
 import morgan from 'morgan';
-import path from 'path';
 import { fileURLToPath } from 'url';
 import { notFound, errorHandler } from './middlewares/error.middleware.js';
 
@@ -38,9 +37,6 @@ app.use(helmet({
   crossOriginResourcePolicy: false,
 }));
 app.use(cors());
-
-const __dirname = path.resolve();
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Special handling for Stripe Webhook to keep raw body
 app.use((req, res, next) => {

@@ -46,6 +46,9 @@ const productSchema = new mongoose.Schema(
         material: {
             type: String, // e.g., "Laine naturelle", "Argile", "Cuir"
         },
+        region: {
+            type: String, // e.g., "Fès-Meknès", "Marrakech-Safi"
+        },
         isCustomizable: {
             type: Boolean,
             default: false, // For "Possibilité de personnalisation" 

@@ -7,7 +7,8 @@ import {
     getArtisans,
     getArtisanById,
     toggleWishlist,
-    getWishlist
+    getWishlist,
+    updateUserAvatar
 } from "../controllers/user.controller.js";
 import { verifyToken, authorize } from "../middlewares/auth.middleware.js";
 import upload from "../middlewares/upload.middleware.js";

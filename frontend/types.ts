@@ -52,6 +52,7 @@ export interface Product {
   isCustomizable: boolean;
   stock: number;
   material?: string;
+  region?: string;
 }
 
 export interface CartItem {
