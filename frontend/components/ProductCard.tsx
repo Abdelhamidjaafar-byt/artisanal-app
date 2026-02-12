@@ -1,9 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Product } from '../types';
 import { formatImageUrl } from '../utils/imageUtils';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
+import { useNotification } from '../context/NotificationContext';
 
 interface ProductCardProps {
   product: Product;
@@ -11,6 +13,9 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addItem } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
+  const { showNotification } = useNotification();
+  const [debugFlash, setDebugFlash] = useState(false);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -24,6 +29,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     });
   };
 
+  const handleToggleWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDebugFlash(true);
+    setTimeout(() => setDebugFlash(false), 500);
+    // showNotification("Clic détecté sur le favori...", "info"); // DEBUG
+    toggleWishlist(product.id);
+  };
+
+  const isFavorited = isInWishlist(product.id);
+
   return (
     <div className="flex flex-col group h-full">
       <div className="moorish-arch-container shadow-sm group-hover:shadow-2xl transition-all duration-500 mb-6 bg-white overflow-hidden">
@@ -35,6 +51,18 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
             />
           </div>
+
+          {/* Wishlist Toggle */}
+          <button
+            onClick={handleToggleWishlist}
+            className={`absolute top-4 right-4 p-2 rounded-full shadow-lg transition-all duration-300 z-50 ${debugFlash ? 'ring-4 ring-orange-500 scale-125' : ''} ${isFavorited ? 'bg-orange-700 text-white' : 'bg-white/80 text-orange-900 hover:bg-white'}`}
+            title={isFavorited ? "Retirer de la liste d'envies" : "Ajouter à la liste d'envies"}
+          >
+            <svg className={`w-5 h-5 ${isFavorited ? 'fill-current' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          </button>
+
           {product.isCustomizable && (
             <span className="absolute top-12 left-1/2 -translate-x-1/2 bg-orange-850/90 text-white text-[10px] font-bold uppercase tracking-[0.2em] py-1.5 px-4 rounded-full shadow-lg backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300">
               Sur Mesure

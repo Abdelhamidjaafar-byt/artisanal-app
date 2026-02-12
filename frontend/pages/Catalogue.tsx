@@ -1,78 +1,69 @@
 
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { MOCK_PRODUCTS, CRAFT_CATEGORIES } from '../constants';
+import { CRAFT_CATEGORIES } from '../constants';
 import ProductCard from '../components/ProductCard';
 import api from '../services/api';
-import { Product, User, UserRole } from '../types';
-import { formatImageUrl } from '../utils/imageUtils';
+import { Product, User } from '../types';
 
 const Catalogue: React.FC = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const categoryFromUrl = searchParams.get('category');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(categoryFromUrl);
+  const [selectedArtisan, setSelectedArtisan] = useState<string | null>(null);
+  const [priceRange, setPriceRange] = useState<{ min?: number, max?: number }>({});
+  const [artisans, setArtisans] = useState<User[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Sync state with URL when it changes (e.g. back button)
   useEffect(() => {
-    setSelectedCategory(categoryFromUrl);
-  }, [categoryFromUrl]);
-
-  const handleCategoryChange = (cat: string | null) => {
-    setSelectedCategory(cat);
-    if (cat) {
-      setSearchParams({ category: cat });
-    } else {
-      setSearchParams({});
-    }
-  };
+    const fetchFilters = async () => {
+      try {
+        const [artisansRes, filtersRes] = await Promise.all([
+          api.get('/users/artisans'),
+          api.get('/products/filters')
+        ]);
+        setArtisans(artisansRes.data);
+      } catch (err) {
+        console.error("Failed to fetch filters:", err);
+      }
+    };
+    fetchFilters();
+  }, []);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        // If selectedCategory is null, fetch all. If set, append query param.
-        // Backend expects 'category' query param.
-        const url = selectedCategory ? `/products?category=${encodeURIComponent(selectedCategory)}` : '/products';
-        const response = await api.get(url);
+        let params = new URLSearchParams();
+        if (selectedArtisan) params.append('artisan', selectedArtisan);
+        if (priceRange.min) params.append('minPrice', priceRange.min.toString());
+        if (priceRange.max) params.append('maxPrice', priceRange.max.toString());
 
-        // Map backend products to frontend Product interface
-        const mappedProducts: Product[] = response.data.map((p: any) => {
-          // Map backend product to frontend Product interface
-          const mainImage = formatImageUrl(p.images?.[0] || p.image);
-          const mappedProduct: Product = {
-            id: p._id,
-            artisanId: p.artisan?._id || 'unknown',
-            artisanName: p.artisan?.name || 'Artisan Inconnu',
-            title: p.title,
-            description: p.description,
-            price: p.price,
-            category: p.category,
-            image: mainImage,
-            images: (p.images || []).map((img: string) => formatImageUrl(img)),
-            isCustomizable: p.isCustomizable,
-            stock: p.stock
-          };
-          return mappedProduct;
-        });
+        const response = await api.get(`/products?${params.toString()}`);
+
+        const mappedProducts: Product[] = response.data.map((p: any) => ({
+          id: p._id,
+          artisanId: p.artisan?._id || 'unknown',
+          artisanName: p.artisan?.name || 'Artisan Inconnu',
+          title: p.title,
+          description: p.description,
+          price: p.price,
+          category: p.category,
+          image: p.images?.[0] || 'https://via.placeholder.com/300',
+          isCustomizable: p.isCustomizable,
+          stock: p.stock
+        }));
 
         setProducts(mappedProducts);
         setError(null);
       } catch (err) {
         console.error("Failed to fetch products:", err);
         setError("Impossible de charger les produits. Veuillez réessayer plus tard.");
-        // Fallback to mock data for demo if API fails? 
-        // For now, let's just show error, or maybe fallback to mock data if it's a demo environment.
-        // user requested "link frontend with backend", so let's stick to API.
       } finally {
         setLoading(false);
       }
     };
 
     fetchProducts();
-  }, [selectedCategory]);
+  }, [selectedArtisan, priceRange]);
 
   // Filter is now done on backend, but we could also double check locally if we wanted
   // but let's rely on backend filtering as per the useEffect logic.
@@ -90,25 +81,51 @@ const Catalogue: React.FC = () => {
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Sidebar Filters */}
         <aside className="lg:w-64 space-y-8">
+          <div className="flex justify-between items-center lg:block">
+            <h3 className="text-lg font-heritage font-bold text-orange-950 mb-4">Filtres</h3>
+            <button
+              onClick={() => {
+                setSelectedArtisan(null);
+                setPriceRange({});
+              }}
+              className="text-orange-700 text-xs font-bold hover:underline mb-4"
+            >
+              Réinitialiser
+            </button>
+          </div>
+
           <div>
-            <h3 className="text-lg font-heritage font-bold text-orange-950 mb-4">Métiers</h3>
-            <div className="flex flex-wrap lg:flex-col gap-2">
-              <button
-                onClick={() => handleCategoryChange(null)}
-                className={`text-left px-4 py-2 rounded-xl text-sm font-medium transition ${!selectedCategory ? 'bg-orange-800 text-white' : 'bg-white text-orange-900 border border-orange-100 hover:bg-orange-50'}`}
-              >
-                Tous les produits
-              </button>
-              {CRAFT_CATEGORIES.map(cat => (
+            <h4 className="text-sm font-bold text-orange-900 mb-3 uppercase tracking-wider">Prix (MAD)</h4>
+            <div className="space-y-2">
+              {[
+                { label: 'Tous les prix', range: {} },
+                { label: 'Moins de 500', range: { max: 500 } },
+                { label: '500 - 2000', range: { min: 500, max: 2000 } },
+                { label: 'Plus de 2000', range: { min: 2000 } }
+              ].map((p, idx) => (
                 <button
-                  key={cat}
-                  onClick={() => handleCategoryChange(cat)}
-                  className={`text-left px-4 py-2 rounded-xl text-sm font-medium transition ${selectedCategory === cat ? 'bg-orange-800 text-white' : 'bg-white text-orange-900 border border-orange-100 hover:bg-orange-50'}`}
+                  key={idx}
+                  onClick={() => setPriceRange(p.range)}
+                  className={`w-full text-left px-4 py-2 rounded-xl text-xs font-medium transition ${JSON.stringify(priceRange) === JSON.stringify(p.range) ? 'bg-orange-850 text-white' : 'bg-white text-orange-900 border border-orange-100 hover:bg-orange-50'}`}
                 >
-                  {cat}
+                  {p.label}
                 </button>
               ))}
             </div>
+          </div>
+
+          <div>
+            <h4 className="text-sm font-bold text-orange-900 mb-3 uppercase tracking-wider">Artisans</h4>
+            <select
+              value={selectedArtisan || ''}
+              onChange={(e) => setSelectedArtisan(e.target.value || null)}
+              className="w-full bg-white border border-orange-100 text-orange-900 text-xs rounded-xl px-4 py-2 outline-none focus:ring-1 focus:ring-orange-800"
+            >
+              <option value="">Tous les artisans</option>
+              {artisans.map(art => (
+                <option key={art.id || (art as any)._id} value={art.id || (art as any)._id}>{art.name}</option>
+              ))}
+            </select>
           </div>
 
           <div className="bg-orange-50 p-6 rounded-2xl border border-orange-100">
@@ -141,8 +158,8 @@ const Catalogue: React.FC = () => {
             </div>
           )}
         </main>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 

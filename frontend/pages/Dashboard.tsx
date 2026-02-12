@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 import api from '../services/api';
 import { formatImageUrl } from '../utils/imageUtils';
 import { socketService } from '../services/socketService';
+import ArtisanAnalytics from '../components/ArtisanAnalytics';
 
 
 const StatusBadge = ({ status }: { status: OrderStatus }) => {
@@ -334,6 +335,8 @@ const Dashboard: React.FC = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Left Column: Orders/Stats */}
           <div className="lg:col-span-2 space-y-8">
+            {user.role === UserRole.ARTISAN && <ArtisanAnalytics />}
+
             <section className="bg-white p-6 rounded-3xl shadow-sm border border-orange-50">
               <h2 className="text-2xl font-heritage font-bold text-orange-950 mb-6">Suivi des Commandes</h2>
               {loadingOrders ? (

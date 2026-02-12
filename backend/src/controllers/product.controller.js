@@ -20,11 +20,21 @@ export const createProduct = async (req, res, next) => {
 // GET ALL PRODUCTS (PUBLIC)
 export const getProducts = async (req, res, next) => {
     try {
-        const { category, keyword } = req.query;
+        const { category, keyword, artisan, minPrice, maxPrice } = req.query;
         let query = {};
 
         if (category) {
             query.category = category;
+        }
+
+        if (artisan) {
+            query.artisan = artisan;
+        }
+
+        if (minPrice || maxPrice) {
+            query.price = {};
+            if (minPrice) query.price.$gte = Number(minPrice);
+            if (maxPrice) query.price.$lte = Number(maxPrice);
         }
 
         if (keyword) {
@@ -109,6 +119,24 @@ export const deleteProduct = async (req, res, next) => {
 
         await product.deleteOne();
         res.json({ message: "Product deleted" });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// GET UNIQUE FILTERS (CATEGORIES & MATERIALS)
+export const getProductFilters = async (req, res, next) => {
+    try {
+        const categories = await Product.distinct("category");
+        const materials = await Product.distinct("material");
+
+        // Filter out null/undefined materials
+        const filteredMaterials = materials.filter(m => m != null);
+
+        res.json({
+            categories,
+            materials: filteredMaterials
+        });
     } catch (error) {
         next(error);
     }

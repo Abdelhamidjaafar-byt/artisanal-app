@@ -20,6 +20,8 @@ import SearchResults from './pages/SearchResults';
 import CartDrawer from './components/CartDrawer';
 import ArtisanShowroom from './pages/ArtisanShowroom';
 import Checkout from './pages/Checkout';
+import Wishlist from './pages/Wishlist';
+import { WishlistProvider } from './context/WishlistContext';
 import Footer from './components/Footer';
 import About from './pages/About';
 import Artisans from './pages/Artisans';
@@ -51,53 +53,56 @@ const App: React.FC = () => {
     }}>
       <AuthProvider>
         <NotificationProvider>
-          <CartProvider>
-            <Router>
-              <div className="min-h-screen flex flex-col">
-                <Navbar />
-                <main className="flex-grow">
-                  <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/catalogue" element={<Catalogue />} />
-                    <Route path="/search" element={<SearchResults />} />
-                    <Route path="/product/:id" element={<ProductDetail />} />
-                    <Route path="/artisan/:id" element={<ArtisanShowroom />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/login-success" element={<LoginSuccess />} />
-                    <Route path="/order-success" element={<OrderSuccess />} />
-                    <Route path="/order-cancel" element={<OrderCancel />} />
-                    <Route path="/checkout" element={<Checkout />} />
-                    <Route path="/about" element={<About />} />
-                    <Route path="/artisans" element={<Artisans />} />
-                    <Route path="/contact" element={<Contact />} />
-                    <Route path="/legal" element={<Legal />} />
-                    <Route path="/privacy" element={<Privacy />} />
-                    <Route path="/terms" element={<Terms />} />
-                    <Route
-                      path="/dashboard"
-                      element={
-                        <PrivateRoute>
-                          <Dashboard />
-                        </PrivateRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin"
-                      element={
-                        <PrivateRoute>
-                          <AdminDashboard />
-                        </PrivateRoute>
-                      }
-                    />
-                    <Route path="*" element={<Navigate to="/" />} />
-                  </Routes>
-                </main>
-                <Footer />
-                <CartDrawer />
-              </div>
-            </Router>
-          </CartProvider>
+          <WishlistProvider>
+            <CartProvider>
+              <Router>
+                <div className="min-h-screen flex flex-col">
+                  <Navbar />
+                  <main className="flex-grow">
+                    <Routes>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/catalogue" element={<Catalogue />} />
+                      <Route path="/search" element={<SearchResults />} />
+                      <Route path="/product/:id" element={<ProductDetail />} />
+                      <Route path="/artisan/:id" element={<ArtisanShowroom />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/register" element={<Register />} />
+                      <Route path="/login-success" element={<LoginSuccess />} />
+                      <Route path="/order-success" element={<OrderSuccess />} />
+                      <Route path="/order-cancel" element={<OrderCancel />} />
+                      <Route path="/checkout" element={<Checkout />} />
+                      <Route path="/about" element={<About />} />
+                      <Route path="/artisans" element={<Artisans />} />
+                      <Route path="/contact" element={<Contact />} />
+                      <Route path="/legal" element={<Legal />} />
+                      <Route path="/privacy" element={<Privacy />} />
+                      <Route path="/terms" element={<Terms />} />
+                      <Route
+                        path="/dashboard"
+                        element={
+                          <PrivateRoute>
+                            <Dashboard />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin"
+                        element={
+                          <PrivateRoute>
+                            <AdminDashboard />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route path="/wishlist" element={<Wishlist />} />
+                      <Route path="*" element={<Navigate to="/" />} />
+                    </Routes>
+                  </main>
+                  <Footer />
+                  <CartDrawer />
+                </div>
+              </Router>
+            </CartProvider>
+          </WishlistProvider>
         </NotificationProvider>
       </AuthProvider>
     </PayPalScriptProvider>
