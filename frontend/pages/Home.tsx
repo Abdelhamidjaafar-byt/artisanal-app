@@ -5,6 +5,7 @@ import { CRAFT_CATEGORIES } from '../constants';
 import ProductCard from '../components/ProductCard';
 import api from '../services/api';
 import { Product } from '../types';
+import { formatImageUrl } from '../utils/imageUtils';
 
 // Import craft images
 import tissageImg from '../assets/Tissage.jpeg';
@@ -41,18 +42,21 @@ const Home: React.FC = () => {
       try {
         const response = await api.get('/products');
         // Map backend products and take the first 4
-        const mappedProducts: Product[] = response.data.map((p: any) => ({
-          id: p._id,
-          artisanId: p.artisan?._id || 'unknown',
-          artisanName: p.artisan?.name || 'Artisan Inconnu',
-          title: p.title,
-          description: p.description,
-          price: p.price,
-          category: p.category,
-          image: p.images?.[0] || 'https://via.placeholder.com/300',
-          isCustomizable: p.isCustomizable,
-          stock: p.stock
-        })).slice(0, 4);
+        const mappedProducts: Product[] = response.data.map((p: any) => {
+          const mainImage = formatImageUrl(p.images?.[0] || p.image);
+          return {
+            id: p._id,
+            artisanId: p.artisan?._id || 'unknown',
+            artisanName: p.artisan?.name || 'Artisan Inconnu',
+            title: p.title,
+            description: p.description,
+            price: p.price,
+            category: p.category,
+            image: mainImage,
+            isCustomizable: p.isCustomizable,
+            stock: p.stock
+          };
+        }).slice(0, 4);
 
         setFeaturedProducts(mappedProducts);
       } catch (err) {
@@ -172,8 +176,9 @@ const Home: React.FC = () => {
             <div className="flex gap-6 animate-slide w-max">
               {/* Direct categories and duplicated categories for seamless loop */}
               {[...CRAFT_CATEGORIES, ...CRAFT_CATEGORIES].map((cat, idx) => (
-                <div
+                <Link
                   key={idx}
+                  to={`/catalogue?category=${encodeURIComponent(cat)}`}
                   className="flex-shrink-0 w-64 h-80 rounded-[40px] hover:border-orange-800 transition-all duration-500 cursor-pointer shadow-sm hover:shadow-xl group/card text-center relative overflow-hidden flex flex-col items-center justify-center p-8"
                   style={{
                     backgroundImage: `url(${CATEGORY_IMAGES[cat]})`,
@@ -186,7 +191,7 @@ const Home: React.FC = () => {
                     <p className="text-white font-heritage font-bold text-xl leading-snug drop-shadow-md">{cat}</p>
                     <p className="text-orange-200 text-xs mt-4 font-bold uppercase tracking-widest opacity-0 group-hover/card:opacity-100 transition-opacity">Découvrir</p>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>

@@ -53,8 +53,8 @@ const Artisans: React.FC = () => {
                 <p className="text-center text-gray-500">Aucun artisan trouvé pour le moment.</p>
             ) : (
                 <div className="grid md:grid-cols-3 gap-8">
-                    {artisans.map((artisan) => (
-                        <Link key={artisan.id} to={`/artisan/${artisan.id || artisan._id}`} className="group bg-white p-8 rounded-3xl shadow-sm border border-orange-50 text-center hover:shadow-xl transition-all duration-300">
+                    {artisans.map((artisan: any) => (
+                        <Link key={artisan.id || artisan._id} to={`/artisan/${artisan.id || artisan._id}`} className="group bg-white p-8 rounded-3xl shadow-sm border border-orange-50 text-center hover:shadow-xl transition-all duration-300">
                             <img src={artisan.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e'} className="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-orange-50 object-cover group-hover:scale-110 transition-transform" alt={artisan.name} />
                             <h3 className="text-2xl font-heritage font-bold text-orange-950 mb-2">{artisan.name}</h3>
                             <p className="text-orange-700 font-bold mb-4">

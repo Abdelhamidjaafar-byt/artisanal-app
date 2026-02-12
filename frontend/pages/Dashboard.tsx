@@ -7,6 +7,7 @@ import { MOCK_PRODUCTS, CRAFT_CATEGORIES } from '../constants';
 import { generateProductDescription, getArtisanAdvisorResponse } from '../geminiService';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
+import { formatImageUrl } from '../utils/imageUtils';
 import { socketService } from '../services/socketService';
 import ArtisanAnalytics from '../components/ArtisanAnalytics';
 
@@ -64,7 +65,11 @@ const Dashboard: React.FC = () => {
     city: user?.city || '',
     postalCode: user?.postalCode || ''
   });
-  const [newProduct, setNewProduct] = useState({ title: '', category: CRAFT_CATEGORIES[0], price: 0, description: '' });
+  const [newProduct, setNewProduct] = useState({ title: '', category: CRAFT_CATEGORIES[0], price: 0, description: '', stock: 0 });
+  const [productImages, setProductImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiAdvice, setAiAdvice] = useState('');
   const [query, setQuery] = useState('');
@@ -180,12 +185,110 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files: File[] = Array.from(e.target.files);
+      setProductImages(prev => [...prev, ...files]);
+
+      const newPreviews = files.map((file: File) => URL.createObjectURL(file));
+      setImagePreviews(prev => [...prev, ...newPreviews]);
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setProductImages(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => {
+      URL.revokeObjectURL(prev[index]);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  const handleSubmitProduct = async () => {
+    if (!newProduct.title || !newProduct.price || productImages.length === 0) {
+      alert('Veuillez remplir les champs obligatoires et ajouter au moins une image.');
+      return;
+    }
+
+    setAiLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('title', newProduct.title);
+      formData.append('category', newProduct.category);
+      formData.append('price', newProduct.price.toString());
+      formData.append('description', newProduct.description);
+      formData.append('stock', newProduct.stock.toString());
+
+      productImages.forEach(image => {
+        formData.append('images', image);
+      });
+
+      await api.post('/products', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      setIsAddingProduct(false);
+      setNewProduct({ title: '', category: CRAFT_CATEGORIES[0], price: 0, description: '', stock: 0 });
+      setProductImages([]);
+      setImagePreviews([]);
+
+      // Refresh products
+      const res = await api.get('/products');
+      if (user.role.includes('ARTISAN')) {
+        setProducts(res.data.filter((p: any) => p.artisan?._id === user.id || p.artisan === user.id));
+      }
+    } catch (error) {
+      console.error('Failed to add product:', error);
+      alert('Erreur lors de la publication du produit.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const handleSaveProfile = async () => {
     if (updateUser) {
       await updateUser(editForm);
       setIsEditingProfile(false);
     }
   };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const formData = new FormData();
+      formData.append('avatar', file);
+
+      try {
+        const res = await api.put('/users/avatar', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        if (updateUser) {
+          updateUser({ avatar: res.data.avatar });
+        }
+        alert('Photo de profil mise à jour');
+      } catch (error) {
+        console.error('Failed to upload avatar:', error);
+        alert('Erreur lors de l\'upload de la photo de profil');
+      }
+    }
+  };
+
+  useEffect(() => {
+    const fetchMyProducts = async () => {
+      setLoadingProducts(true);
+      try {
+        const res = await api.get(`/products?artisanId=${user.id}`);
+        setProducts(res.data);
+      } catch (error) {
+        console.error('Failed to fetch my products:', error);
+      } finally {
+        setLoadingProducts(false);
+      }
+    };
+
+    if (user && user.role.includes('ARTISAN')) {
+      fetchMyProducts();
+    }
+  }, [user.id]);
 
   return (
     <>
@@ -303,17 +406,23 @@ const Dashboard: React.FC = () => {
               <>
                 <section className="bg-white p-6 rounded-3xl shadow-sm border border-orange-50">
                   <h2 className="text-2xl font-heritage font-bold text-orange-950 mb-6">Mon Catalogue</h2>
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    {MOCK_PRODUCTS.filter(p => p.artisanId === user.id).map(prod => (
-                      <div key={prod.id} className="flex gap-4 p-4 border border-orange-50 rounded-2xl">
-                        <img src={prod.image} className="w-20 h-20 rounded-lg object-cover" alt="" />
-                        <div className="flex flex-col justify-center">
-                          <h4 className="font-bold text-orange-950">{prod.title}</h4>
-                          <p className="text-sm text-orange-700 font-bold">{prod.price} MAD</p>
+                  {loadingProducts ? (
+                    <div className="text-center py-4 text-orange-800/60 text-sm">Chargement du catalogue...</div>
+                  ) : products.length === 0 ? (
+                    <div className="text-center py-4 text-orange-800/60 text-sm">Vous n'avez pas encore exposé de produits.</div>
+                  ) : (
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      {products.map(prod => (
+                        <div key={prod._id} className="flex gap-4 p-4 border border-orange-50 rounded-2xl">
+                          <img src={formatImageUrl(prod.images?.[0] || prod.image)} className="w-20 h-20 rounded-lg object-cover" alt="" />
+                          <div className="flex flex-col justify-center">
+                            <h4 className="font-bold text-orange-950">{prod.title}</h4>
+                            <p className="text-sm text-orange-700 font-bold">{prod.price} MAD</p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </section>
 
                 {/* Notifications Section */}
@@ -386,7 +495,13 @@ const Dashboard: React.FC = () => {
 
             {/* Mini Profile Card */}
             <section className="bg-white p-6 rounded-3xl shadow-sm border border-orange-50 text-center">
-              <img src={user.avatar} className="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-orange-50" alt="" />
+              <div className="relative w-24 h-24 mx-auto mb-4 group">
+                <img src={user.avatar || 'https://via.placeholder.com/150'} className="w-24 h-24 rounded-full border-4 border-orange-50 object-cover" alt="" />
+                <label className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer">
+                  <span className="text-white text-[10px] font-bold">Changer</span>
+                  <input type="file" className="hidden" accept="image/*" onChange={handleAvatarChange} />
+                </label>
+              </div>
               <h3 className="text-xl font-heritage font-bold text-orange-950">{user.name}</h3>
               <p className="text-sm text-orange-800 font-medium mb-4">{user.region || 'Utilisateur Plateforme'}</p>
               <div className="pt-4 border-t border-orange-50 grid grid-cols-2 gap-2 text-xs">
@@ -571,10 +686,11 @@ const Dashboard: React.FC = () => {
 
                 <div className="pt-4 border-t border-orange-50">
                   <button
-                    className="w-full bg-orange-800 text-white py-4 rounded-xl font-bold hover:bg-orange-900 transition shadow-lg"
-                    onClick={() => setIsAddingProduct(false)}
+                    className="w-full bg-orange-800 text-white py-4 rounded-xl font-bold hover:bg-orange-900 transition shadow-lg disabled:bg-orange-300"
+                    onClick={handleSubmitProduct}
+                    disabled={aiLoading}
                   >
-                    Publier l'œuvre
+                    {aiLoading ? 'Publication...' : "Publier l'œuvre"}
                   </button>
                 </div>
               </div>

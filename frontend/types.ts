@@ -36,6 +36,7 @@ export interface User {
     region?: string;
   };
   isApproved?: boolean;
+  craftType?: string;
 }
 
 export interface Product {
@@ -47,6 +48,7 @@ export interface Product {
   price: number;
   category: string;
   image: string;
+  images?: string[];
   isCustomizable: boolean;
   stock: number;
   material?: string;

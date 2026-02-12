@@ -19,6 +19,7 @@ const ProductDetail: React.FC = () => {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
   const [customData, setCustomData] = useState({ dimensions: '', notes: '' });
+  const [selectedImage, setSelectedImage] = useState<string>('');
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -119,14 +120,15 @@ const ProductDetail: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
       <div className="grid lg:grid-cols-2 gap-16 items-start">
-        {/* Left: Product Image in Arch */}
-        <div className="relative moorish-arch bg-white shadow-2xl p-4 border border-orange-100">
-          <div className="moorish-arch-inner overflow-hidden aspect-[4/5] bg-orange-50">
-            <img
-              src={product.image}
-              alt={product.title}
-              className="w-full h-full object-cover"
-            />
+        <div className="flex flex-col gap-4">
+          <div className="relative moorish-arch bg-white shadow-2xl p-4 border border-orange-100">
+            <div className="moorish-arch-inner overflow-hidden aspect-[4/5] bg-orange-50">
+              <img
+                src={selectedImage}
+                alt={product.title}
+                className="w-full h-full object-cover transition-all duration-500"
+              />
+            </div>
           </div>
           {/* Wishlist Toggle in Product Detail */}
           <button

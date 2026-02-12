@@ -21,7 +21,12 @@ import paypalRoutes from './routes/paypal.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
 import analyticsRoutes from './routes/analytics.routes.js';
 import morgan from 'morgan';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { notFound, errorHandler } from './middlewares/error.middleware.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -67,6 +72,9 @@ app.use(session({
 app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Static folder
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Routes
 app.use('/api/stripe', stripeRoutes);

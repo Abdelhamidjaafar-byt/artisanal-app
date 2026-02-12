@@ -72,7 +72,8 @@ export const MOCK_USERS: User[] = [
     name: 'Youssef Mansouri',
     email: 'youssef@client.ma',
     role: UserRole.CLIENT,
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&h=200'
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&h=200',
+    craftType: ''
   }
 ];
 
