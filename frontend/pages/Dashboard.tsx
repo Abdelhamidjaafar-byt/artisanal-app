@@ -692,6 +692,32 @@ const Dashboard: React.FC = () => {
                   ></textarea>
                 </div>
 
+                <div className="space-y-4">
+                  <label className="block text-sm font-bold text-orange-950 ml-1">Images du produit (Max 5)</label>
+                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-4">
+                    {imagePreviews.map((preview, index) => (
+                      <div key={index} className="relative aspect-square rounded-2xl overflow-hidden group border border-orange-100">
+                        <img src={preview} className="w-full h-full object-cover" alt="" />
+                        <button
+                          onClick={() => removeImage(index)}
+                          className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition shadow-lg"
+                        >
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                    {imagePreviews.length < 5 && (
+                      <label className="aspect-square border-2 border-dashed border-orange-200 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:bg-orange-50 transition-all group">
+                        <div className="text-2xl text-orange-300 group-hover:scale-110 transition-transform">📸</div>
+                        <span className="text-[10px] font-bold text-orange-400 mt-1 uppercase">Ajouter</span>
+                        <input type="file" className="hidden" multiple accept="image/*" onChange={handleImageChange} />
+                      </label>
+                    )}
+                  </div>
+                </div>
+
                 <div className="pt-4 border-t border-orange-50">
                   <button
                     className="w-full bg-orange-800 text-white py-4 rounded-xl font-bold hover:bg-orange-900 transition shadow-lg disabled:bg-orange-300"
