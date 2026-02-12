@@ -1,17 +1,16 @@
 
 import { Product, User, UserRole, OrderStatus, Order } from './types';
-
 export const CRAFT_CATEGORIES = [
   'Tissage (زرابي)',
-  'Poterie et Céramique',
+  'Poterie et Céramique (خزف وفخار)',
   'Dinanderie (نحاس)',
-  'Menuiserie Traditionnelle',
-  'Broderie Artisanale',
-  'Couture (Kaftan & Djellaba)',
-  'Maroquinerie',
-  'Zellige',
-  'Ferronnerie',
-  'Tannage'
+  'Menuiserie Traditionnelle (نجارة تقليدية)',
+  'Broderie Artisanale (طرز تقليدي)',
+  'Couture (Kaftan & Djellaba) (خياطة تقليدية)',
+  'Maroquinerie (صناعة الجلود)',
+  'Zellige (زليج)',
+  'Ferronnerie (حدادة فنية)',
+  'Tannage (دباغة)'
 ];
 
 export const REGIONS = [
@@ -124,7 +123,7 @@ export const MOCK_ORDERS: Order[] = [
     artisanId: 'a1',
     productId: 'p1',
     productTitle: 'Tapis Beni Ouarain Authentique',
-    status: OrderStatus.MANUFACTURING,
+    status: OrderStatus.IN_FABRICATION,
     date: '2023-11-20',
     createdAt: new Date().toISOString(),
     total: 4500,

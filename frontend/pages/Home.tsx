@@ -20,15 +20,15 @@ import tannageImg from '../assets/Tannage.jpeg';
 
 const CATEGORY_IMAGES: Record<string, string> = {
   'Tissage (زرابي)': tissageImg,
-  'Poterie et Céramique': poterieImg,
+  'Poterie et Céramique (خزف وفخار)': poterieImg,
   'Dinanderie (نحاس)': dinanderieImg,
-  'Menuiserie Traditionnelle': menuiserieImg,
-  'Broderie Artisanale': broderieImg,
-  'Couture (Kaftan & Djellaba)': coutureImg,
-  'Maroquinerie': maroquinerieImg,
-  'Zellige': zelligeImg,
-  'Ferronnerie': ferronnerieImg,
-  'Tannage': tannageImg,
+  'Menuiserie Traditionnelle (نجارة تقليدية)': menuiserieImg,
+  'Broderie Artisanale (طرز تقليدي)': broderieImg,
+  'Couture (Kaftan & Djellaba) (خياطة تقليدية)': coutureImg,
+  'Maroquinerie (صناعة الجلود)': maroquinerieImg,
+  'Zellige (زليج)': zelligeImg,
+  'Ferronnerie (حدادة فنية)': ferronnerieImg,
+  'Tannage (دباغة)': tannageImg,
 };
 
 const Home: React.FC = () => {
@@ -91,6 +91,13 @@ const Home: React.FC = () => {
         .animate-slide:hover {
           animation-play-state: paused;
         }
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
       `}</style>
       {/* Hero Section */}
       <section className="relative h-[90vh] flex items-center justify-center px-4 overflow-hidden">
@@ -135,11 +142,32 @@ const Home: React.FC = () => {
               <h2 className="text-4xl font-heritage font-bold text-orange-950">Nos Métiers d'Excellence</h2>
               <div className="h-1 w-24 bg-orange-700 mt-2 rounded-full"></div>
             </div>
+            {/* Carousel Navigation Arrows */}
+            <div className="flex gap-4">
+              <button
+                onClick={() => scroll('left')}
+                className="group w-14 h-14 rounded-full border-2 border-orange-200 flex items-center justify-center text-orange-900 hover:bg-orange-800 hover:border-orange-800 hover:text-white transition-all duration-300 shadow-sm active:scale-95"
+                aria-label="Précédent"
+              >
+                <svg className="w-6 h-6 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button
+                onClick={() => scroll('right')}
+                className="group w-14 h-14 rounded-full border-2 border-orange-200 flex items-center justify-center text-orange-900 hover:bg-orange-800 hover:border-orange-800 hover:text-white transition-all duration-300 shadow-sm active:scale-95"
+                aria-label="Suivant"
+              >
+                <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           <div
             ref={carouselRef}
-            className="overflow-hidden pb-8 pt-2 relative"
+            className="overflow-x-auto pb-8 pt-2 relative no-scrollbar"
           >
             <div className="flex gap-6 animate-slide w-max">
               {/* Direct categories and duplicated categories for seamless loop */}
@@ -155,7 +183,6 @@ const Home: React.FC = () => {
                 >
                   <div className="absolute inset-0 bg-orange-950/40 group-hover/card:bg-orange-950/60 transition-colors duration-500"></div>
                   <div className="relative z-10">
-                    {/* <div className="text-4xl mb-4 transform group-hover/card:scale-125 transition-transform duration-500">✨</div> */}
                     <p className="text-white font-heritage font-bold text-xl leading-snug drop-shadow-md">{cat}</p>
                     <p className="text-orange-200 text-xs mt-4 font-bold uppercase tracking-widest opacity-0 group-hover/card:opacity-100 transition-opacity">Découvrir</p>
                   </div>
