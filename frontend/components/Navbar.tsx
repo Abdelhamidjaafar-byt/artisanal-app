@@ -3,10 +3,12 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 
 const Navbar: React.FC = () => {
   const { user, logout, isAuthenticated } = useAuth();
   const { totalItems, setIsCartOpen } = useCart();
+  const { wishlist } = useWishlist();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -55,7 +57,7 @@ const Navbar: React.FC = () => {
             <Link to="/about" className="text-orange-900 hover:text-orange-600 font-medium transition">À propos</Link>
 
             {/* Search Bar */}
-            <form onSubmit={handleSearch} className="relative group min-w-[200px]">
+            <form onSubmit={handleSearch} className="relative group w-40">
               <input
                 type="text"
                 placeholder="Rechercher..."
@@ -69,6 +71,22 @@ const Navbar: React.FC = () => {
                 </svg>
               </button>
             </form>
+
+            {/* Wishlist Button */}
+            <Link
+              to="/wishlist"
+              className="relative text-orange-900 hover:text-orange-600 transition"
+              title="Ma liste d'envies"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+              {wishlist.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-orange-600 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">
+                  {wishlist.length}
+                </span>
+              )}
+            </Link>
 
             {/* Cart Button */}
             <button

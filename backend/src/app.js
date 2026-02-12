@@ -1,4 +1,5 @@
 ﻿import express from 'express';
+import path from 'path';
 import cors from 'cors';
 import helmet from 'helmet';
 import mongoSanitize from 'express-mongo-sanitize';
@@ -18,6 +19,7 @@ import messageRoutes from './routes/message.routes.js';
 import stripeRoutes from './routes/stripe.routes.js';
 import paypalRoutes from './routes/paypal.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
+import analyticsRoutes from './routes/analytics.routes.js';
 import morgan from 'morgan';
 import { notFound, errorHandler } from './middlewares/error.middleware.js';
 
@@ -27,8 +29,13 @@ if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
 }
 
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+}));
 app.use(cors());
+
+const __dirname = path.resolve();
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Special handling for Stripe Webhook to keep raw body
 app.use((req, res, next) => {
@@ -73,6 +80,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/analytics', analyticsRoutes);
 app.use('/', authRoutes);
 
 app.get('/', (req, res) => {

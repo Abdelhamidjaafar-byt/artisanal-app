@@ -121,3 +121,63 @@ export const getArtisans = async (req, res, next) => {
         next(error);
     }
 };
+
+// @desc    Get artisan by ID (Public)
+// @route   GET /api/users/artisan/:id
+// @access  Public
+export const getArtisanById = async (req, res, next) => {
+    try {
+        const artisan = await User.findOne({ _id: req.params.id, role: "ARTISAN" }).select("-password");
+        if (!artisan) {
+            res.status(404);
+            throw new Error("Artisan not found");
+        }
+        res.json(artisan);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Toggle product in wishlist
+// @route   POST /api/users/wishlist/:productId
+// @access  Private
+export const toggleWishlist = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            res.status(404);
+            throw new Error("User not found");
+        }
+        const productId = req.params.productId;
+
+        // Use findIndex with string comparison to avoid ObjectId mismatch
+        const index = user.wishlist.findIndex(id => id.toString() === productId);
+
+        if (index === -1) {
+            user.wishlist.push(productId);
+            await user.save();
+            res.json({ message: "Product added to wishlist", wishlist: user.wishlist });
+        } else {
+            user.wishlist.splice(index, 1);
+            await user.save();
+            res.json({ message: "Product removed from wishlist", wishlist: user.wishlist });
+        }
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Get user wishlist
+// @route   GET /api/users/wishlist
+// @access  Private
+export const getWishlist = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.user.id).populate({
+            path: 'wishlist',
+            populate: { path: 'artisan', select: 'name' }
+        });
+        res.json(user.wishlist);
+    } catch (error) {
+        next(error);
+    }
+};

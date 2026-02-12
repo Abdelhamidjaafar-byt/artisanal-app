@@ -6,6 +6,9 @@ import { useNotification } from '../context/NotificationContext';
 import { useCart } from '../context/CartContext';
 import api from '../services/api';
 import { Product, User, UserRole } from '../types';
+import ReviewForm from '../components/ReviewForm';
+import ReviewList from '../components/ReviewList';
+import { useWishlist } from '../context/WishlistContext';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -13,65 +16,61 @@ const ProductDetail: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const { showNotification } = useNotification();
   const { addItem } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
   const [customData, setCustomData] = useState({ dimensions: '', notes: '' });
 
-  // const { id } is already defined above
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reviews, setReviews] = useState([]);
+
+  const fetchProduct = async () => {
+    try {
+      setLoading(true);
+      if (!id) return;
+      const [productRes, reviewsRes] = await Promise.all([
+        api.get(`/products/${id}`),
+        api.get(`/reviews/product/${id}`)
+      ]);
+      const p = productRes.data;
+
+      const mappedProduct: Product = {
+        id: p._id,
+        artisanId: p.artisan?._id || 'unknown',
+        artisanName: p.artisan?.name || 'Artisan Inconnu',
+        title: p.title,
+        description: p.description,
+        price: p.price,
+        category: p.category,
+        image: p.images?.[0] || 'https://via.placeholder.com/600',
+        isCustomizable: p.isCustomizable,
+        stock: p.stock
+      };
+
+      setProduct(mappedProduct);
+      setReviews(reviewsRes.data);
+
+      const artisanData: User = {
+        id: p.artisan?._id || 'unknown',
+        name: p.artisan?.name || 'Artisan Inconnu',
+        email: p.artisan?.email || '',
+        role: UserRole.ARTISAN,
+        region: p.artisan?.artisanProfile?.region || 'Maroc',
+        bio: p.artisan?.artisanProfile?.bio || '',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&h=200'
+      };
+      setArtisan(artisanData);
+      setError(null);
+    } catch (err) {
+      console.error("Failed to fetch product data:", err);
+      setError("Impossible de charger le produit.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        setLoading(true);
-        if (!id) return;
-        const response = await api.get(`/products/${id}`);
-        const p = response.data;
-
-        // Map backend product to frontend Product interface
-        const mappedProduct: Product = {
-          id: p._id,
-          artisanId: p.artisan?._id || 'unknown',
-          artisanName: p.artisan?.name || 'Artisan Inconnu',
-          title: p.title,
-          description: p.description,
-          price: p.price,
-          category: p.category,
-          image: p.image || 'https://via.placeholder.com/600',
-          isCustomizable: p.isCustomizable,
-          stock: p.stock
-        };
-
-        // We also need the artisan details which come attached to the product
-        // The frontend currently looks up the artisan in MOCK_USERS.
-        // We will extend the product object or state to include the artisan details we need.
-        // However, looking at the code below, it uses `artisan` variable.
-        // Let's attach the artisan info to a separate state or just use the product.artisan info
-
-        setProduct(mappedProduct);
-
-        // Define artisan object for the view
-        const artisanData: User = {
-          id: p.artisan?._id || 'unknown',
-          name: p.artisan?.name || 'Artisan Inconnu',
-          email: p.artisan?.email || '',
-          role: UserRole.ARTISAN, // Assumed
-          region: p.artisan?.artisanProfile?.region || 'Maroc',
-          bio: p.artisan?.artisanProfile?.bio || '',
-          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&h=200' // Placeholder as avatar is not in User model yet
-        };
-        setArtisan(artisanData);
-
-        setError(null);
-      } catch (err) {
-        console.error("Failed to fetch product:", err);
-        setError("Impossible de charger le produit.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchProduct();
   }, [id]);
 
@@ -94,8 +93,6 @@ const ProductDetail: React.FC = () => {
     );
   }
 
-  // const artisan is now state-based defined above
-
   const handleAddToCart = () => {
     if (!product) return;
     addItem({
@@ -117,6 +114,8 @@ const ProductDetail: React.FC = () => {
     setIsCustomModalOpen(false);
   };
 
+  const isFavorited = isInWishlist(product.id);
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
       <div className="grid lg:grid-cols-2 gap-16 items-start">
@@ -129,6 +128,16 @@ const ProductDetail: React.FC = () => {
               className="w-full h-full object-cover"
             />
           </div>
+          {/* Wishlist Toggle in Product Detail */}
+          <button
+            onClick={() => toggleWishlist(product.id)}
+            className={`absolute top-8 right-8 p-3 rounded-full shadow-2xl transition-all duration-300 z-10 hover:scale-110 ${isFavorited ? 'bg-orange-700 text-white' : 'bg-white text-orange-900'}`}
+            title={isFavorited ? "Retirer de la liste d'envies" : "Ajouter à la liste d'envies"}
+          >
+            <svg className={`w-6 h-6 ${isFavorited ? 'fill-current' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          </button>
         </div>
 
         {/* Right: Product Info */}
@@ -197,6 +206,26 @@ const ProductDetail: React.FC = () => {
                 Nettoyage à sec recommandé pour préserver les fibres et les couleurs naturelles.
               </p>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Reviews Section */}
+      <div className="mt-24 pt-24 border-t border-orange-100">
+        <div className="grid lg:grid-cols-3 gap-16">
+          <div className="lg:col-span-1">
+            <h2 className="text-3xl font-heritage font-bold text-orange-950 mb-6">Avis Clients</h2>
+            {isAuthenticated ? (
+              <ReviewForm productId={product.id} onReviewSubmitted={fetchProduct} />
+            ) : (
+              <div className="bg-orange-50/50 p-6 rounded-3xl border border-orange-100 text-center">
+                <p className="text-orange-900/60 mb-4">Connectez-vous pour laisser un avis sur vos achats.</p>
+                <Link to="/login" className="text-orange-700 font-bold hover:underline">Se connecter</Link>
+              </div>
+            )}
+          </div>
+          <div className="lg:col-span-2">
+            <ReviewList reviews={reviews} productId={product.id} onUpdate={fetchProduct} />
           </div>
         </div>
       </div>

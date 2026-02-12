@@ -102,6 +102,12 @@ const userSchema = new mongoose.Schema(
         avatar: {
             type: String,
         },
+        wishlist: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Product",
+            },
+        ],
     },
     { timestamps: true }
 );

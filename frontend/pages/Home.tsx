@@ -49,7 +49,7 @@ const Home: React.FC = () => {
           description: p.description,
           price: p.price,
           category: p.category,
-          image: p.image || 'https://via.placeholder.com/300',
+          image: p.images?.[0] || 'https://via.placeholder.com/300',
           isCustomizable: p.isCustomizable,
           stock: p.stock
         })).slice(0, 4);

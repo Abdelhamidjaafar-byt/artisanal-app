@@ -1,22 +1,13 @@
 import express from "express";
-import {
-    createReview,
-    getProductReviews,
-    deleteReview,
-    updateReview
-} from "../controllers/review.controller.js";
-import { verifyToken, authorize } from "../middlewares/auth.middleware.js";
+import { createReview, getProductReviews, updateReview, deleteReview } from "../controllers/review.controller.js";
+import { verifyToken } from "../middlewares/auth.middleware.js";
+import upload from "../middlewares/upload.middleware.js";
 
 const router = express.Router();
 
-// Public: Get reviews for a product
 router.get("/product/:productId", getProductReviews);
-
-// Client: Create/Update review
-router.post("/", verifyToken, createReview);
-router.patch("/:id", verifyToken, updateReview);
-
-// Admin/Client: Delete review
+router.post("/", verifyToken, upload.array("images", 5), createReview);
+router.put("/:id", verifyToken, upload.array("images", 5), updateReview);
 router.delete("/:id", verifyToken, deleteReview);
 
 export default router;

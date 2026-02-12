@@ -6,6 +6,7 @@ import {
     getProductById,
     updateProduct,
     deleteProduct,
+    getProductFilters
 } from "../controllers/product.controller.js";
 
 import { verifyToken, authorize, checkApproved } from "../middlewares/auth.middleware.js";
@@ -32,8 +33,9 @@ const productValidation = [
     validate
 ];
 
-// Public: Get all products, Get single product
+// Public: Get all products, Get single product, Get filters
 router.get("/", getProducts);
+router.get("/filters", getProductFilters);
 router.get("/:id", getProductById);
 
 // Artisan: Create product (MUST be approved)

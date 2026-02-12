@@ -90,12 +90,17 @@ export interface CustomRequest {
 }
 
 export interface Review {
-  id: string;
-  productId: string;
-  userName: string;
+  _id: string;
+  user: {
+    _id: string;
+    name: string;
+    avatar?: string;
+  };
+  product: string;
   rating: number;
   comment: string;
-  date: string;
+  images?: string[];
+  createdAt: string;
 }
 
 export interface Notification {
