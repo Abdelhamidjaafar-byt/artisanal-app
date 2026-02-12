@@ -25,6 +25,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Load cart from localStorage on mount
     useEffect(() => {
         const savedCart = localStorage.getItem('artisan_cart');
+        console.log('CartContext: Loading cart from storage...', savedCart);
         if (savedCart) {
             try {
                 const parsed = JSON.parse(savedCart);
@@ -40,10 +41,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Save cart to localStorage on change
     useEffect(() => {
-        localStorage.setItem('artisan_cart', JSON.stringify(items));
-    }, [items]);
+        if (isLoaded) {
+            console.log('CartContext: Saving cart to storage...', items);
+            localStorage.setItem('artisan_cart', JSON.stringify(items));
+        }
+    }, [items, isLoaded]);
 
     const addItem = useCallback((item: Omit<CartItem, 'id'>) => {
+        console.log('CartContext: Adding item...', item);
         setItems(prev => {
             const existingItem = prev.find(i => i.productId === item.productId);
             if (existingItem) {
@@ -59,10 +64,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     const removeItem = useCallback((productId: string) => {
+        console.log('CartContext: Removing item...', productId);
         setItems(prev => prev.filter(i => i.productId !== productId));
     }, []);
 
     const updateQuantity = useCallback((productId: string, quantity: number) => {
+        console.log('CartContext: Updating quantity...', productId, quantity);
         if (quantity <= 0) {
             removeItem(productId);
             return;
@@ -73,7 +80,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [removeItem]);
 
     const clearCart = useCallback(() => {
+        console.log('CartContext: Clearing cart...');
         setItems([]);
+        localStorage.removeItem('artisan_cart');
     }, []);
 
     const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);

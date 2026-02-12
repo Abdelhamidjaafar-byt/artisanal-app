@@ -104,7 +104,18 @@ export const deleteUser = async (req, res, next) => {
 // @access  Public
 export const getArtisans = async (req, res, next) => {
     try {
-        const artisans = await User.find({ role: "ARTISAN" }).select("-password");
+        const { keyword } = req.query;
+        let query = { role: "ARTISAN" };
+
+        if (keyword) {
+            query.$or = [
+                { name: { $regex: keyword, $options: "i" } },
+                { "artisanProfile.bio": { $regex: keyword, $options: "i" } },
+                { "artisanProfile.specialties": { $regex: keyword, $options: "i" } }
+            ];
+        }
+
+        const artisans = await User.find(query).select("-password");
         res.json(artisans);
     } catch (error) {
         next(error);

@@ -13,9 +13,10 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import LoginSuccess from './src/pages/LoginSuccess';
 import AdminDashboard from './pages/AdminDashboard';
-import OrderSuccess from './src/pages/OrderSuccess';
-import OrderCancel from './src/pages/OrderCancel';
+import OrderSuccess from './pages/OrderSuccess';
+import OrderCancel from './pages/OrderCancel';
 import ProductDetail from './pages/ProductDetail';
+import SearchResults from './pages/SearchResults';
 import CartDrawer from './components/CartDrawer';
 import ArtisanShowroom from './pages/ArtisanShowroom';
 import Checkout from './pages/Checkout';
@@ -58,6 +59,7 @@ const App: React.FC = () => {
                   <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/catalogue" element={<Catalogue />} />
+                    <Route path="/search" element={<SearchResults />} />
                     <Route path="/product/:id" element={<ProductDetail />} />
                     <Route path="/artisan/:id" element={<ArtisanShowroom />} />
                     <Route path="/login" element={<Login />} />

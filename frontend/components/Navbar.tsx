@@ -10,25 +10,35 @@ const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
 
+  const [searchKeyword, setSearchKeyword] = useState('');
+
   const handleLogout = () => {
     logout();
     navigate('/');
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchKeyword.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchKeyword.trim())}`);
+      setSearchKeyword('');
+    }
+  };
+
   return (
-    <nav className=" border-b border-orange-100 sticky top-0 z-50" style={{ backgroundColor: '#c9a6787a' }}>
+    <nav className="border-b border-orange-100 sticky top-0 z-50" style={{ backgroundColor: '#c9a6787a' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center gap-2" >
-              <div className="w-16 h-16  moorish-arch flex items-center justify-center border-2 border-[#d48a24]/30 shadow-xl group-hover:scale-110 transition-all duration-500 overflow-hidden">
+              <div className="w-16 h-16 moorish-arch flex items-center justify-center border-2 border-[#d48a24]/30 shadow-xl group-hover:scale-110 transition-all duration-500 overflow-hidden">
                 <img
                   src="../assets/DAR.png"
                   alt="Logo Dar Sanعa"
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="w-70 h-20  flex items-center justify-center  group-hover:scale-110 transition-all duration-500 overflow-hidden">
+              <div className="w-70 h-20 flex items-center justify-center group-hover:scale-110 transition-all duration-500 overflow-hidden">
                 <img
                   src="../assets/DAR 2.png"
                   alt="Logo Dar Sanعa"
@@ -38,12 +48,27 @@ const Navbar: React.FC = () => {
             </Link>
           </div>
 
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-6">
             <Link to="/" className="text-orange-900 hover:text-orange-600 font-medium transition">Accueil</Link>
             <Link to="/catalogue" className="text-orange-900 hover:text-orange-600 font-medium transition">Boutique</Link>
             <Link to="/artisans" className="text-orange-900 hover:text-orange-600 font-medium transition">Artisans</Link>
             <Link to="/about" className="text-orange-900 hover:text-orange-600 font-medium transition">À propos</Link>
-            <Link to="/contact" className="text-orange-900 hover:text-orange-600 font-medium transition">Contact</Link>
+
+            {/* Search Bar */}
+            <form onSubmit={handleSearch} className="relative group min-w-[200px]">
+              <input
+                type="text"
+                placeholder="Rechercher..."
+                value={searchKeyword}
+                onChange={(e) => setSearchKeyword(e.target.value)}
+                className="w-full bg-white/50 border border-orange-100/50 px-4 py-1.5 rounded-full text-orange-950 placeholder-orange-900/40 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-all text-sm shadow-sm"
+              />
+              <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-900/40 group-hover:text-orange-900 transition-colors">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </button>
+            </form>
 
             {/* Cart Button */}
             <button
@@ -99,9 +124,24 @@ const Navbar: React.FC = () => {
       </div>
 
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-t border-orange-100 p-4 space-y-4">
+        <div className="md:hidden bg-white border-t border-orange-100 p-4 space-y-4 shadow-xl">
+          <form onSubmit={handleSearch} className="relative group mb-4">
+            <input
+              type="text"
+              placeholder="Rechercher..."
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              className="w-full bg-orange-50 border border-orange-100 px-4 py-2 rounded-full text-orange-950 placeholder-orange-900/40 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all shadow-sm"
+            />
+            <button type="submit" className="absolute right-4 top-1/2 -translate-y-1/2 text-orange-900/40">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </button>
+          </form>
           <Link to="/" className="block text-orange-900 font-medium" onClick={() => setIsMenuOpen(false)}>Accueil</Link>
           <Link to="/catalogue" className="block text-orange-900 font-medium" onClick={() => setIsMenuOpen(false)}>Boutique</Link>
+          <Link to="/artisans" className="block text-orange-900 font-medium" onClick={() => setIsMenuOpen(false)}>Artisans</Link>
           {isAuthenticated ? (
             <>
               <Link to="/dashboard" className="block text-orange-900 font-medium" onClick={() => setIsMenuOpen(false)}>Mon Espace</Link>

@@ -113,7 +113,7 @@ const ProductDetail: React.FC = () => {
       navigate('/login');
       return;
     }
-    showNotification("Votre demande sur-mesure a été envoyée à l'artisan ! Il vous contactera prochainement.", 'success');
+    alert("Votre demande sur-mesure a été envoyée à l'artisan ! Il vous contactera prochainement.");
     setIsCustomModalOpen(false);
   };
 
