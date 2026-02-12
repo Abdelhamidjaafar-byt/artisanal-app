@@ -26,28 +26,30 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   return (
     <div className="flex flex-col group h-full">
-      <div className="relative moorish-arch bg-white aspect-[4/5] shadow-sm group-hover:shadow-xl transition-all duration-500 mb-4 border-b-4 border-orange-900/10">
-        <div className="absolute inset-2 moorish-arch-inner overflow-hidden bg-orange-50">
-          <img
-            src={formatImageUrl(product.image)}
-            alt={product.title}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-          />
+      <div className="moorish-arch-container shadow-sm group-hover:shadow-2xl transition-all duration-500 mb-6 bg-white overflow-hidden">
+        <div className="relative aspect-[4/5] moorish-arch">
+          <div className="absolute inset-0 bg-orange-50/50">
+            <img
+              src={formatImageUrl(product.image)}
+              alt={product.title}
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+            />
+          </div>
+          {product.isCustomizable && (
+            <span className="absolute top-12 left-1/2 -translate-x-1/2 bg-orange-850/90 text-white text-[10px] font-bold uppercase tracking-[0.2em] py-1.5 px-4 rounded-full shadow-lg backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300">
+              Sur Mesure
+            </span>
+          )}
+          <button
+            onClick={handleAddToCart}
+            className="absolute bottom-6 right-6 bg-white/90 text-orange-900 p-3 rounded-full shadow-xl translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 hover:bg-orange-950 hover:text-white backdrop-blur-sm"
+            title="Ajouter au panier"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+          </button>
         </div>
-        {product.isCustomizable && (
-          <span className="absolute top-12 left-1/2 -translate-x-1/2 bg-orange-800 text-white text-[10px] font-bold uppercase tracking-widest py-1 px-3 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            Sur Mesure
-          </span>
-        )}
-        <button
-          onClick={handleAddToCart}
-          className="absolute bottom-4 right-4 bg-white text-orange-900 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-orange-100"
-          title="Ajouter au panier"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-          </svg>
-        </button>
       </div>
 
       <div className="text-center px-2 flex-1 flex flex-col">

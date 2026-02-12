@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { MOCK_PRODUCTS, CRAFT_CATEGORIES } from '../constants';
 import ProductCard from '../components/ProductCard';
 import api from '../services/api';
@@ -7,10 +8,26 @@ import { Product, User, UserRole } from '../types';
 import { formatImageUrl } from '../utils/imageUtils';
 
 const Catalogue: React.FC = () => {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const categoryFromUrl = searchParams.get('category');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(categoryFromUrl);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Sync state with URL when it changes (e.g. back button)
+  useEffect(() => {
+    setSelectedCategory(categoryFromUrl);
+  }, [categoryFromUrl]);
+
+  const handleCategoryChange = (cat: string | null) => {
+    setSelectedCategory(cat);
+    if (cat) {
+      setSearchParams({ category: cat });
+    } else {
+      setSearchParams({});
+    }
+  };
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -77,7 +94,7 @@ const Catalogue: React.FC = () => {
             <h3 className="text-lg font-heritage font-bold text-orange-950 mb-4">Métiers</h3>
             <div className="flex flex-wrap lg:flex-col gap-2">
               <button
-                onClick={() => setSelectedCategory(null)}
+                onClick={() => handleCategoryChange(null)}
                 className={`text-left px-4 py-2 rounded-xl text-sm font-medium transition ${!selectedCategory ? 'bg-orange-800 text-white' : 'bg-white text-orange-900 border border-orange-100 hover:bg-orange-50'}`}
               >
                 Tous les produits
@@ -85,7 +102,7 @@ const Catalogue: React.FC = () => {
               {CRAFT_CATEGORIES.map(cat => (
                 <button
                   key={cat}
-                  onClick={() => setSelectedCategory(cat)}
+                  onClick={() => handleCategoryChange(cat)}
                   className={`text-left px-4 py-2 rounded-xl text-sm font-medium transition ${selectedCategory === cat ? 'bg-orange-800 text-white' : 'bg-white text-orange-900 border border-orange-100 hover:bg-orange-50'}`}
                 >
                   {cat}

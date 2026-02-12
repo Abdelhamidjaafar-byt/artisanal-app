@@ -128,8 +128,9 @@ const Home: React.FC = () => {
             <div className="flex gap-6 animate-slide w-max">
               {/* Direct categories and duplicated categories for seamless loop */}
               {[...CRAFT_CATEGORIES, ...CRAFT_CATEGORIES].map((cat, idx) => (
-                <div
+                <Link
                   key={idx}
+                  to={`/catalogue?category=${encodeURIComponent(cat)}`}
                   className="flex-shrink-0 w-64 h-80 rounded-[40px] hover:border-orange-800 transition-all duration-500 cursor-pointer shadow-sm hover:shadow-xl group/card text-center relative overflow-hidden flex flex-col items-center justify-center p-8"
                   style={{
                     backgroundImage: `url(${CATEGORY_IMAGES[cat]})`,
@@ -143,7 +144,7 @@ const Home: React.FC = () => {
                     <p className="text-white font-heritage font-bold text-xl leading-snug drop-shadow-md">{cat}</p>
                     <p className="text-orange-200 text-xs mt-4 font-bold uppercase tracking-widest opacity-0 group-hover/card:opacity-100 transition-opacity">Découvrir</p>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
