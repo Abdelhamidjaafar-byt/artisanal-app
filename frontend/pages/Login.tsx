@@ -71,6 +71,11 @@ const Login: React.FC = () => {
               required
               disabled={isLoading}
             />
+            <div className="flex justify-end mt-1">
+              <Link to="/forgot-password" disable-nav-transition="true" className="text-sm font-medium text-orange-700 hover:text-orange-900 transition-colors">
+                Mot de passe oublié ?
+              </Link>
+            </div>
           </div>
 
           {error && (

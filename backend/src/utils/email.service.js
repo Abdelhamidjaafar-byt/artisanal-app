@@ -1,20 +1,29 @@
+import "../config/env.js";
 import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 // Create a transporter
 // If credentials are provided, use them. Otherwise, we might use a testing account or just log.
+const clean = (val) => val?.trim().replace(/^["']|["']$/g, '');
+
 const createTransporter = () => {
-    if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+    const host = clean(process.env.EMAIL_HOST);
+    const user = clean(process.env.EMAIL_USERNAME);
+    const pass = clean(process.env.EMAIL_PASSWORD);
+    const port = parseInt(clean(process.env.EMAIL_PORT) || '587');
+
+    if (host && user && pass) {
+        console.log(`✅ Creating real SMTP transporter for ${host}`);
         return nodemailer.createTransport({
-            host: process.env.SMTP_HOST,
-            port: process.env.SMTP_PORT || 587,
-            secure: false, // true for 465, false for other ports
+            host,
+            port,
+            secure: false,
             auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS,
+                user,
+                pass,
             },
+            tls: {
+                rejectUnauthorized: false
+            }
         });
     } else {
         console.log("⚠️ No SMTP credentials found. Email sending will be simulated (logged to console).");
@@ -25,6 +34,7 @@ const createTransporter = () => {
 const transporter = createTransporter();
 
 export const sendOrderStatusEmail = async (to, orderId, status) => {
+    const fromEmail = clean(process.env.EMAIL_FROM) || 'no-reply@artisanat.ma';
     const subject = `Mise à jour de votre commande #${orderId.toString().slice(-6)}`;
     const text = `Bonjour,\n\nLe statut de votre commande #${orderId} a été mis à jour.\n\nNouveau statut : ${status}\n\nMerci de votre confiance,\nL'équipe Artisanat.`;
 
@@ -44,7 +54,7 @@ export const sendOrderStatusEmail = async (to, orderId, status) => {
     try {
         if (transporter) {
             const info = await transporter.sendMail({
-                from: process.env.SMTP_FROM || '"Artisanat App" <no-reply@artisanat.ma>',
+                from: `"Artisanat Platform" <${fromEmail}>`,
                 to,
                 subject,
                 text,

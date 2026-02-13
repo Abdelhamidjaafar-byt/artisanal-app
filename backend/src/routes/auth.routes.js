@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { passport } from '../auth.js';
 import User from '../models/User.js';
+import { forgotPassword, resetPassword } from '../controllers/auth.controller.js';
 
 const router = express.Router();
 
@@ -153,5 +154,9 @@ router.get('/logout', (req, res, next) => {
     res.redirect('/');
   });
 });
+
+// --- Password Reset Routes ---
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password/:token', resetPassword);
 
 export default router;
