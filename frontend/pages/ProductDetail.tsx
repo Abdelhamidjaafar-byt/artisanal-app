@@ -63,7 +63,7 @@ const ProductDetail: React.FC = () => {
         id: p.artisan?._id || 'unknown',
         name: p.artisan?.name || 'Artisan Inconnu',
         email: p.artisan?.email || '',
-        role: UserRole.ARTISAN,
+        role: [UserRole.ARTISAN],
         region: p.artisan?.artisanProfile?.region || 'Maroc',
         bio: p.artisan?.artisanProfile?.bio || '',
         avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&h=200'

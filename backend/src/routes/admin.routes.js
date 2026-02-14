@@ -5,7 +5,7 @@ import Product from "../models/Product.js";
 import { verifyToken } from "../middlewares/auth.middleware.js";
 import role from "../middlewares/role.middleware.js";
 
-import { approveArtisan, getPendingArtisans } from "../controllers/admin.controller.js";
+import { approveArtisan, getPendingArtisans, getAllUsers, deleteUser, updateUserRole } from "../controllers/admin.controller.js";
 
 const router = express.Router();
 
@@ -43,5 +43,17 @@ router.get("/pending-artisans", verifyToken, role("ADMIN"), getPendingArtisans);
 
 // Approve Artisan
 router.patch("/approve/:id", verifyToken, role("ADMIN"), approveArtisan);
+
+// -- User Management Routes --
+
+
+// Get All Users
+router.get("/users", verifyToken, role("ADMIN"), getAllUsers);
+
+// Update User Role
+router.patch("/users/:id/role", verifyToken, role("ADMIN"), updateUserRole);
+
+// Delete User
+router.delete("/users/:id", verifyToken, role("ADMIN"), deleteUser);
 
 export default router;

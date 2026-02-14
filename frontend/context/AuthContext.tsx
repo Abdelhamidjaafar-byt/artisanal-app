@@ -48,15 +48,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Map backend user to frontend User type
       // Backend role is an array, take the first one
-      const userRole = backendUser.role && backendUser.role.length > 0
-        ? (backendUser.role[0] as UserRole)
-        : UserRole.CLIENT;
+      const userRoles = Array.isArray(backendUser.role)
+        ? (backendUser.role as UserRole[])
+        : [UserRole.CLIENT];
 
       const userToSave: User = {
         id: backendUser.id,
         name: backendUser.name,
         email: backendUser.email,
-        role: userRole,
+        role: userRoles,
         isApproved: backendUser.isApproved,
         avatar: backendUser.avatar,
         region: backendUser.region,
@@ -78,9 +78,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateUser = async (data: Partial<User>) => {
     try {
       const response = await api.put('/user/profile', data);
-      const updatedUser = response.data;
-      setUser(updatedUser);
-      localStorage.setItem('artisan_auth', JSON.stringify(updatedUser));
+      const backendUser = response.data;
+
+      const userRoles = Array.isArray(backendUser.role)
+        ? (backendUser.role as UserRole[])
+        : [UserRole.CLIENT];
+
+      const userToSave: User = {
+        ...backendUser,
+        id: backendUser._id || backendUser.id,
+        role: userRoles
+      };
+
+      setUser(userToSave);
+      localStorage.setItem('artisan_auth', JSON.stringify(userToSave));
     } catch (error) {
       console.error("Update profile failed:", error);
       throw error;
@@ -92,15 +103,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await api.get('/users/profile');
       const backendUser = response.data;
 
-      const userRole = backendUser.role && backendUser.role.length > 0
-        ? (backendUser.role[0] as UserRole)
-        : UserRole.CLIENT;
+      const userRoles = Array.isArray(backendUser.role)
+        ? (backendUser.role as UserRole[])
+        : [UserRole.CLIENT];
 
       const userToSave: User = {
         id: backendUser._id || backendUser.id,
         name: backendUser.name,
         email: backendUser.email,
-        role: userRole,
+        role: userRoles,
         isApproved: backendUser.isApproved,
         avatar: backendUser.avatar,
         region: backendUser.region,

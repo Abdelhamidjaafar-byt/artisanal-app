@@ -82,7 +82,7 @@ export const updateProduct = async (req, res, next) => {
             throw new Error("Product not found");
         }
 
-        if (product.artisan.toString() !== req.user.id) {
+        if (product.artisan.toString() !== req.user.id && !req.user.role.includes("ADMIN")) {
             res.status(403);
             throw new Error("Not authorized");
         }
@@ -112,7 +112,7 @@ export const deleteProduct = async (req, res, next) => {
             throw new Error("Product not found");
         }
 
-        if (product.artisan.toString() !== req.user.id) {
+        if (product.artisan.toString() !== req.user.id && !req.user.role.includes("ADMIN")) {
             res.status(403);
             throw new Error("Not authorized");
         }

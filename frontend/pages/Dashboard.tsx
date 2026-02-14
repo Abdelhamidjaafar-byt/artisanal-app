@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { UserRole, OrderStatus, Order, Notification } from '../types';
 import { useNotification } from '../context/NotificationContext';
 import { MOCK_PRODUCTS, CRAFT_CATEGORIES } from '../constants';
+import { Edit, Trash2 } from 'lucide-react';
 import { generateProductDescription, getArtisanAdvisorResponse } from '../geminiService';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
@@ -42,6 +43,7 @@ const Dashboard: React.FC = () => {
   const { user, updateUser, refreshUser } = useAuth();
   const { showNotification } = useNotification();
   const [isAddingProduct, setIsAddingProduct] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<any>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
@@ -65,7 +67,7 @@ const Dashboard: React.FC = () => {
     city: user?.city || '',
     postalCode: user?.postalCode || ''
   });
-  const [newProduct, setNewProduct] = useState({ title: '', category: CRAFT_CATEGORIES[0], price: 0, description: '', stock: 0 });
+  const [newProduct, setNewProduct] = useState({ title: '', category: CRAFT_CATEGORIES[0], price: 0, description: '', stock: 0, isCustomizable: false });
   const [productImages, setProductImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [products, setProducts] = useState<any[]>([]);
@@ -203,8 +205,39 @@ const Dashboard: React.FC = () => {
     });
   };
 
+  const handleEditProduct = (prod: any) => {
+    setEditingProduct(prod);
+    setNewProduct({
+      title: prod.title,
+      category: prod.category,
+      price: prod.price,
+      description: prod.description,
+      stock: prod.stock || 0,
+      isCustomizable: prod.isCustomizable || false
+    });
+    // For images, we just show previews if they exist
+    if (prod.images) {
+      setImagePreviews(prod.images.map((img: string) => formatImageUrl(img)));
+    } else if (prod.image) {
+      setImagePreviews([formatImageUrl(prod.image)]);
+    }
+    setIsAddingProduct(true);
+  };
+
+  const handleDeleteProduct = async (prodId: string) => {
+    if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) return;
+    try {
+      await api.delete(`/products/${prodId}`);
+      setProducts(prev => prev.filter(p => p._id !== prodId && p.id !== prodId));
+      showNotification("Produit supprimé.", 'success');
+    } catch (error) {
+      console.error('Failed to delete product:', error);
+      showNotification("Erreur lors de la suppression.", 'error');
+    }
+  };
+
   const handleSubmitProduct = async () => {
-    if (!newProduct.title || !newProduct.price || productImages.length === 0) {
+    if (!newProduct.title || !newProduct.price || (!editingProduct && productImages.length === 0)) {
       alert('Veuillez remplir les champs obligatoires et ajouter au moins une image.');
       return;
     }
@@ -217,22 +250,32 @@ const Dashboard: React.FC = () => {
       formData.append('price', newProduct.price.toString());
       formData.append('description', newProduct.description);
       formData.append('stock', newProduct.stock.toString());
+      formData.append('isCustomizable', newProduct.isCustomizable.toString());
 
       productImages.forEach(image => {
         formData.append('images', image);
       });
 
-      await api.post('/products', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      if (editingProduct) {
+        await api.put(`/products/${editingProduct._id || editingProduct.id}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        showNotification("Produit mis à jour !", 'success');
+      } else {
+        await api.post('/products', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        showNotification("Produit publié !", 'success');
+      }
 
       setIsAddingProduct(false);
-      setNewProduct({ title: '', category: CRAFT_CATEGORIES[0], price: 0, description: '', stock: 0 });
+      setEditingProduct(null);
+      setNewProduct({ title: '', category: CRAFT_CATEGORIES[0], price: 0, description: '', stock: 0, isCustomizable: false });
       setProductImages([]);
       setImagePreviews([]);
 
       // Refresh products
-      const res = await api.get(`/products?artisanId=${user.id}`);
+      const res = await api.get(`/products?artisan=${user.id}`);
       const mappedProducts = res.data.map((p: any) => ({
         ...p,
         id: p._id,
@@ -240,7 +283,7 @@ const Dashboard: React.FC = () => {
       }));
       setProducts(mappedProducts);
     } catch (error) {
-      console.error('Failed to add product:', error);
+      console.error('Failed to submit product:', error);
       alert('Erreur lors de la publication du produit.');
     } finally {
       setAiLoading(false);
@@ -264,13 +307,16 @@ const Dashboard: React.FC = () => {
         const res = await api.put('/users/avatar', formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
-        if (updateUser) {
-          updateUser({ avatar: res.data.avatar });
+
+        // Refresh user data from server to get the updated avatar URL
+        if (refreshUser) {
+          await refreshUser();
         }
-        alert('Photo de profil mise à jour');
+
+        showNotification('Photo de profil mise à jour', 'success');
       } catch (error) {
         console.error('Failed to upload avatar:', error);
-        alert('Erreur lors de l\'upload de la photo de profil');
+        showNotification('Erreur lors de l\'upload de la photo de profil', 'error');
       }
     }
   };
@@ -279,7 +325,7 @@ const Dashboard: React.FC = () => {
     const fetchMyProducts = async () => {
       setLoadingProducts(true);
       try {
-        const res = await api.get(`/products?artisanId=${user.id}`);
+        const res = await api.get(`/products?artisan=${user.id}`);
         const mappedProducts = res.data.map((p: any) => ({
           ...p,
           id: p._id,
@@ -293,7 +339,7 @@ const Dashboard: React.FC = () => {
       }
     };
 
-    if (user && user.role.includes('ARTISAN')) {
+    if (user && user.role.includes(UserRole.ARTISAN)) {
       fetchMyProducts();
     }
   }, [user.id]);
@@ -304,10 +350,10 @@ const Dashboard: React.FC = () => {
         <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <h1 className="text-4xl font-heritage font-bold text-orange-950 mb-2">Bienvenue, {user.name}</h1>
-            <p className="text-orange-800/60 font-medium">Tableau de bord {user.role.toLowerCase()}</p>
+            <p className="text-orange-800/60 font-medium">Tableau de bord {user.role[0]?.toLowerCase()}</p>
           </div>
           <div className="flex gap-4">
-            {user.role === UserRole.ADMIN && (
+            {user.role.includes(UserRole.ADMIN) && (
               <Link
                 to="/admin"
                 className="bg-orange-950 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-900 transition shadow-md"
@@ -315,7 +361,7 @@ const Dashboard: React.FC = () => {
                 Console Admin
               </Link>
             )}
-            {user.role === UserRole.ARTISAN && (
+            {user.role.includes(UserRole.ARTISAN) && (
               <>
                 {!user.isApproved && (
                   <div className="bg-orange-100 border border-orange-200 text-orange-800 px-6 py-3 rounded-xl font-medium animate-pulse">
@@ -343,7 +389,7 @@ const Dashboard: React.FC = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Left Column: Orders/Stats */}
           <div className="lg:col-span-2 space-y-8">
-            {user.role === UserRole.ARTISAN && <ArtisanAnalytics />}
+            {user.role.includes(UserRole.ARTISAN) && <ArtisanAnalytics />}
 
             <section className="bg-white p-6 rounded-3xl shadow-sm border border-orange-50">
               <h2 className="text-2xl font-heritage font-bold text-orange-950 mb-6">Suivi des Commandes</h2>
@@ -362,8 +408,8 @@ const Dashboard: React.FC = () => {
                     <thead>
                       <tr className="border-b border-orange-50 text-orange-950/40 text-sm uppercase tracking-wider">
                         <th className="pb-4 font-bold">Commande</th>
-                        {user.role !== 'ARTISAN' && <th className="pb-4 font-bold">Artisan</th>}
-                        {user.role === 'ARTISAN' && <th className="pb-4 font-bold">Client</th>}
+                        {!user.role.includes(UserRole.ARTISAN) && <th className="pb-4 font-bold">Artisan</th>}
+                        {user.role.includes(UserRole.ARTISAN) && <th className="pb-4 font-bold">Client</th>}
                         <th className="pb-4 font-bold">Date</th>
                         <th className="pb-4 font-bold">Total</th>
                         <th className="pb-4 font-bold">Statut</th>
@@ -379,12 +425,12 @@ const Dashboard: React.FC = () => {
                               <span className="text-xs text-orange-600">{order.items?.length} article(s)</span>
                             </div>
                           </td>
-                          {user.role !== 'ARTISAN' && (
+                          {!user.role.includes(UserRole.ARTISAN) && (
                             <td className="py-4">
                               {order.artisan?.name || 'Artisan'}
                             </td>
                           )}
-                          {user.role === 'ARTISAN' && (
+                          {user.role.includes(UserRole.ARTISAN) && (
                             <td className="py-4">
                               {order.client?.name || 'Client'}
                             </td>
@@ -410,7 +456,7 @@ const Dashboard: React.FC = () => {
               )}
             </section>
 
-            {user.role === UserRole.ARTISAN && (
+            {user.role.includes(UserRole.ARTISAN) && (
               <>
                 <section className="bg-white p-6 rounded-3xl shadow-sm border border-orange-50">
                   <h2 className="text-2xl font-heritage font-bold text-orange-950 mb-6">Mon Catalogue</h2>
@@ -421,11 +467,27 @@ const Dashboard: React.FC = () => {
                   ) : (
                     <div className="grid sm:grid-cols-2 gap-4">
                       {products.map(prod => (
-                        <div key={prod._id} className="flex gap-4 p-4 border border-orange-50 rounded-2xl">
+                        <div key={prod._id} className="flex gap-4 p-4 border border-orange-50 rounded-2xl group relative">
                           <img src={formatImageUrl(prod.images?.[0] || prod.image)} className="w-20 h-20 rounded-lg object-cover" alt="" />
-                          <div className="flex flex-col justify-center">
+                          <div className="flex flex-col justify-center flex-1">
                             <h4 className="font-bold text-orange-950">{prod.title}</h4>
                             <p className="text-sm text-orange-700 font-bold">{prod.price} MAD</p>
+                          </div>
+                          <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition">
+                            <button
+                              onClick={() => handleEditProduct(prod)}
+                              className="p-2 bg-orange-50 text-orange-700 rounded-lg hover:bg-orange-100 transition"
+                              title="Modifier"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteProduct(prod._id || prod.id)}
+                              className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition"
+                              title="Supprimer"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           </div>
                         </div>
                       ))}
@@ -504,7 +566,12 @@ const Dashboard: React.FC = () => {
             {/* Mini Profile Card */}
             <section className="bg-white p-6 rounded-3xl shadow-sm border border-orange-50 text-center">
               <div className="relative w-24 h-24 mx-auto mb-4 group">
-                <img src={user.avatar || 'https://via.placeholder.com/150'} className="w-24 h-24 rounded-full border-4 border-orange-50 object-cover" alt="" />
+                <img
+                  src={user.avatar ? `${user.avatar}?t=${Date.now()}` : 'https://via.placeholder.com/150'}
+                  className="w-24 h-24 rounded-full border-4 border-orange-50 object-cover"
+                  alt=""
+                  key={user.avatar}
+                />
                 <label className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition cursor-pointer">
                   <span className="text-white text-[10px] font-bold">Changer</span>
                   <input type="file" className="hidden" accept="image/*" onChange={handleAvatarChange} />
@@ -630,8 +697,16 @@ const Dashboard: React.FC = () => {
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl w-full max-w-2xl p-8 max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-8">
-                <h2 className="text-3xl font-heritage font-bold text-orange-950">Exposer une création</h2>
-                <button onClick={() => setIsAddingProduct(false)} className="text-orange-950 text-2xl">&times;</button>
+                <h2 className="text-3xl font-heritage font-bold text-orange-950">
+                  {editingProduct ? 'Modifier la création' : 'Exposer une création'}
+                </h2>
+                <button onClick={() => {
+                  setIsAddingProduct(false);
+                  setEditingProduct(null);
+                  setNewProduct({ title: '', category: CRAFT_CATEGORIES[0], price: 0, description: '', stock: 0, isCustomizable: false });
+                  setProductImages([]);
+                  setImagePreviews([]);
+                }} className="text-orange-950 text-2xl">&times;</button>
               </div>
 
               <div className="space-y-8">
@@ -692,6 +767,23 @@ const Dashboard: React.FC = () => {
                   ></textarea>
                 </div>
 
+                {/* Customizable Checkbox */}
+                <div className="flex items-center gap-3 p-4 bg-orange-50/50 rounded-2xl border border-orange-100">
+                  <input
+                    type="checkbox"
+                    id="isCustomizable"
+                    checked={newProduct.isCustomizable}
+                    onChange={(e) => setNewProduct({ ...newProduct, isCustomizable: e.target.checked })}
+                    className="w-5 h-5 text-orange-700 bg-white border-orange-300 rounded focus:ring-orange-500 focus:ring-2 cursor-pointer"
+                  />
+                  <label htmlFor="isCustomizable" className="text-sm font-bold text-orange-950 cursor-pointer flex-1">
+                    Ce produit est personnalisable
+                    <span className="block text-xs font-normal text-orange-700/60 mt-1">
+                      Les clients pourront demander des modifications sur mesure
+                    </span>
+                  </label>
+                </div>
+
                 <div className="space-y-4">
                   <label className="block text-sm font-bold text-orange-950 ml-1">Images du produit (Max 5)</label>
                   <div className="grid grid-cols-3 sm:grid-cols-5 gap-4">
@@ -724,7 +816,7 @@ const Dashboard: React.FC = () => {
                     onClick={handleSubmitProduct}
                     disabled={aiLoading}
                   >
-                    {aiLoading ? 'Publication...' : "Publier l'œuvre"}
+                    {aiLoading ? (editingProduct ? 'Mise à jour...' : 'Publication...') : (editingProduct ? 'Enregistrer les modifications' : "Publier l'œuvre")}
                   </button>
                 </div>
               </div>
@@ -766,7 +858,7 @@ const Dashboard: React.FC = () => {
                   </div>
 
                   {/* Status Update Controls for Artisan */}
-                  {user.role === UserRole.ARTISAN && (
+                  {user.role.includes(UserRole.ARTISAN) && (
                     <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
                       <h4 className="text-sm font-bold text-orange-950 mb-3">Mettre à jour le statut</h4>
                       <div className="flex flex-wrap gap-2">
@@ -798,10 +890,10 @@ const Dashboard: React.FC = () => {
                   {/* Client/Artisan Info */}
                   <div className="bg-orange-50 p-4 rounded-xl">
                     <h3 className="font-bold text-orange-950 mb-2">
-                      {user.role === 'ARTISAN' ? 'Client' : 'Artisan'}
+                      {user.role.includes(UserRole.ARTISAN) ? 'Client' : 'Artisan'}
                     </h3>
                     <p className="text-orange-800">
-                      {user.role === 'ARTISAN'
+                      {user.role.includes(UserRole.ARTISAN)
                         ? selectedOrder.client?.name
                         : selectedOrder.artisan?.name}
                     </p>

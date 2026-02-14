@@ -10,7 +10,9 @@ export const generateProductDescription = async (title: string, category: string
       contents: `Génère une description poétique et commerciale pour un produit artisanal marocain.
       Nom du produit: ${title}
       Catégorie: ${category}
-      La description doit mettre en avant le travail manuel, l'héritage et l'authenticité marocaine.`,
+      La description doit mettre en avant le travail manuel, l'héritage et l'authenticité marocaine.
+      
+      IMPORTANT: Retourne UNIQUEMENT la description du produit, sans aucun texte d'introduction comme "Voici une proposition de description" ou autre préambule. Commence directement par la description.`,
     });
     return response.text || "Impossible de générer une description pour le moment.";
   } catch (error) {

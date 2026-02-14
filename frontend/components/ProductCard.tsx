@@ -42,8 +42,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   return (
     <div className="flex flex-col group h-full">
-      <div className="moorish-arch-container shadow-sm group-hover:shadow-2xl transition-all duration-500 mb-6 bg-white overflow-hidden">
-        <div className="relative aspect-[4/5] moorish-arch">
+      <div className="arch-frame shadow-sm group-hover:shadow-2xl transition-all duration-500 mb-6 bg-white">
+        <div className="relative aspect-[4/5]">
           <div className="absolute inset-0 bg-orange-50/50">
             <img
               src={formatImageUrl(product.image)}
