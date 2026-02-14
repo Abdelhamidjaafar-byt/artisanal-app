@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { CartItem } from '../types';
+import { useNotification } from './NotificationContext';
 
 interface CartContextType {
     items: CartItem[];
@@ -21,6 +22,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [items, setItems] = useState<CartItem[]>([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isLoaded, setIsLoaded] = useState(false);
+    const { showNotification } = useNotification();
 
     // Load cart from localStorage on mount
     useEffect(() => {
@@ -65,7 +67,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const removeItem = useCallback((productId: string) => {
         console.log('CartContext: Removing item...', productId);
-        setItems(prev => prev.filter(i => i.productId !== productId));
+        setItems(prev => {
+            const itemToRemove = prev.find(i => i.productId === productId);
+            if (itemToRemove) {
+                showNotification(`${itemToRemove.title} retiré du panier.`, 'info');
+            }
+            return prev.filter(i => i.productId !== productId);
+        });
     }, []);
 
     const updateQuantity = useCallback((productId: string, quantity: number) => {

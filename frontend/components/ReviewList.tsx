@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import { usePopup } from '../context/PopupContext';
 import ReviewForm from './ReviewForm';
 
 const BACKEND_URL = 'http://localhost:3000'; // Simple constant for now
@@ -26,16 +27,21 @@ interface ReviewListProps {
 
 const ReviewList: React.FC<ReviewListProps> = ({ reviews, productId, onUpdate }) => {
     const { user, isAuthenticated } = useAuth();
+    const { showConfirm, showAlert } = usePopup();
     const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
 
     const handleDelete = async (reviewId: string) => {
-        if (!window.confirm("Voulez-vous vraiment supprimer cet avis ?")) return;
+        const confirmed = await showConfirm(
+            "Supprimer l'avis",
+            "Voulez-vous vraiment supprimer cet avis ?"
+        );
+        if (!confirmed) return;
         try {
             await api.delete(`/reviews/${reviewId}`);
             onUpdate();
         } catch (error) {
             console.error("Failed to delete review:", error);
-            alert("Erreur lors de la suppression de l'avis.");
+            showAlert("Erreur de suppression", "Une erreur est survenue lors de la suppression de l'avis.");
         }
     };
 

@@ -71,9 +71,17 @@ h3,
 
 /* Moorish Arch framing */
 .arch-frame {
-  border-radius: 50% 50% 12px 12px / 40% 40% 12px 12px;
+  clip-path: polygon(0% 100%, 0% 30%, 5% 18%, 15% 10%, 30% 5%, 50% 0, 70% 5%, 85% 10%, 95% 18%, 100% 30%, 100% 100%);
   overflow: hidden;
   position: relative;
+  transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+  background: white;
+  border-bottom: 4px solid rgba(139, 69, 19, 0.1);
+}
+
+.arch-frame:hover {
+  transform: translateY(-8px);
+  filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.15));
 }
 
 /* Glassmorphism with character */

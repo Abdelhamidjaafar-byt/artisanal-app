@@ -3,10 +3,12 @@ import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { User, UserRole } from '../types';
 import { useNotification } from '../context/NotificationContext';
+import { usePopup } from '../context/PopupContext';
 import { Trash2, Shield, User as UserIcon, CheckCircle, XCircle, Package } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
     const { showNotification } = useNotification();
+    const { showConfirm } = usePopup();
     const [stats, setStats] = useState<any>(null);
     const [pendingArtisans, setPendingArtisans] = useState<User[]>([]);
     const [users, setUsers] = useState<User[]>([]);
@@ -35,7 +37,7 @@ const AdminDashboard: React.FC = () => {
             setStats(statsRes.data);
             setPendingArtisans(pendingRes.data);
             setUsers(usersRes.data);
-            setProducts(productsRes.data);
+            setProducts(productsRes.data.products || productsRes.data);
             setOrders(ordersRes.data || []);
         } catch (error) {
             console.error('Error fetching admin data:', error);
@@ -64,7 +66,11 @@ const AdminDashboard: React.FC = () => {
     };
 
     const handleDeleteUser = async (id: string) => {
-        if (!window.confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.")) return;
+        const confirmed = await showConfirm(
+            "Confirmation de suppression",
+            "Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible."
+        );
+        if (!confirmed) return;
 
         try {
             await api.delete(`/admin/users/${id}`);
@@ -97,7 +103,11 @@ const AdminDashboard: React.FC = () => {
     };
 
     const handleDeleteProduct = async (id: string) => {
-        if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce produit ? Cette action est irréversible.")) return;
+        const confirmed = await showConfirm(
+            "Supprimer le produit",
+            "Êtes-vous sûr de vouloir supprimer ce produit ? Cette action est irréversible."
+        );
+        if (!confirmed) return;
 
         try {
             await api.delete(`/products/${id}`);

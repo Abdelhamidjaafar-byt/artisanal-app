@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { UserRole, OrderStatus, Order, Notification } from '../types';
 import { useNotification } from '../context/NotificationContext';
+import { usePopup } from '../context/PopupContext';
 import { MOCK_PRODUCTS, CRAFT_CATEGORIES } from '../constants';
 import { Edit, Trash2 } from 'lucide-react';
 import { generateProductDescription, getArtisanAdvisorResponse } from '../geminiService';
@@ -42,6 +43,7 @@ const StatusBadge = ({ status }: { status: OrderStatus }) => {
 const Dashboard: React.FC = () => {
   const { user, updateUser, refreshUser } = useAuth();
   const { showNotification } = useNotification();
+  const { showAlert, showConfirm } = usePopup();
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -225,7 +227,12 @@ const Dashboard: React.FC = () => {
   };
 
   const handleDeleteProduct = async (prodId: string) => {
-    if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) return;
+    const confirmed = await showConfirm(
+      "Suppression de produit",
+      "Êtes-vous sûr de vouloir supprimer ce produit ?"
+    );
+    if (!confirmed) return;
+
     try {
       await api.delete(`/products/${prodId}`);
       setProducts(prev => prev.filter(p => p._id !== prodId && p.id !== prodId));
@@ -238,7 +245,7 @@ const Dashboard: React.FC = () => {
 
   const handleSubmitProduct = async () => {
     if (!newProduct.title || !newProduct.price || (!editingProduct && productImages.length === 0)) {
-      alert('Veuillez remplir les champs obligatoires et ajouter au moins une image.');
+      showAlert("Champs manquants", "Veuillez remplir les champs obligatoires et ajouter au moins une image.");
       return;
     }
 
@@ -276,7 +283,8 @@ const Dashboard: React.FC = () => {
 
       // Refresh products
       const res = await api.get(`/products?artisan=${user.id}`);
-      const mappedProducts = res.data.map((p: any) => ({
+      const productsData = res.data.products || res.data;
+      const mappedProducts = productsData.map((p: any) => ({
         ...p,
         id: p._id,
         image: formatImageUrl(p.images?.[0] || p.image)
@@ -284,7 +292,7 @@ const Dashboard: React.FC = () => {
       setProducts(mappedProducts);
     } catch (error) {
       console.error('Failed to submit product:', error);
-      alert('Erreur lors de la publication du produit.');
+      showAlert("Erreur de publication", "Une erreur est survenue lors de la publication de votre produit. Veuillez réessayer.");
     } finally {
       setAiLoading(false);
     }
@@ -326,7 +334,8 @@ const Dashboard: React.FC = () => {
       setLoadingProducts(true);
       try {
         const res = await api.get(`/products?artisan=${user.id}`);
-        const mappedProducts = res.data.map((p: any) => ({
+        const productsData = res.data.products || res.data;
+        const mappedProducts = productsData.map((p: any) => ({
           ...p,
           id: p._id,
           image: formatImageUrl(p.images?.[0] || p.image)

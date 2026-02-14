@@ -9,6 +9,7 @@ import { Product, User, UserRole } from '../types';
 import ReviewForm from '../components/ReviewForm';
 import ReviewList from '../components/ReviewList';
 import { useWishlist } from '../context/WishlistContext';
+import { formatImageUrl } from '../utils/imageUtils';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -45,11 +46,13 @@ const ProductDetail: React.FC = () => {
         price: p.price,
         category: p.category,
         image: p.images?.[0] || 'https://via.placeholder.com/600',
+        images: p.images || [],
         isCustomizable: p.isCustomizable,
         stock: p.stock
       };
 
       setProduct(mappedProduct);
+      setSelectedImage(formatImageUrl(mappedProduct.image));
       setReviews(reviewsRes.data);
 
       const artisanData: User = {
@@ -111,7 +114,7 @@ const ProductDetail: React.FC = () => {
       navigate('/login');
       return;
     }
-    alert("Votre demande sur-mesure a été envoyée à l'artisan ! Il vous contactera prochainement.");
+    showNotification("Votre demande sur-mesure a été envoyée à l'artisan ! Il vous contactera prochainement.", "success");
     setIsCustomModalOpen(false);
   };
 
@@ -209,6 +212,31 @@ const ProductDetail: React.FC = () => {
               </p>
             </div>
           </div>
+
+          {/* Thumbnails Gallery */}
+          {product.images && product.images.length > 1 && (
+            <div className="flex gap-4 mt-8 px-2 overflow-x-auto pb-4 scrollbar-hide">
+              {product.images.map((img, index) => (
+                <button
+                  key={index}
+                  onClick={() => setSelectedImage(formatImageUrl(img))}
+                  className={`relative flex-shrink-0 w-24 h-24 rounded-2xl overflow-hidden border-4 transition-all duration-300 ${selectedImage === formatImageUrl(img)
+                    ? 'border-orange-800 scale-105 shadow-xl rotate-1'
+                    : 'border-white hover:border-orange-200 shadow-sm'
+                    }`}
+                >
+                  <img
+                    src={formatImageUrl(img)}
+                    className="w-full h-full object-cover"
+                    alt={`${product.title} visual ${index + 1}`}
+                  />
+                  {selectedImage === formatImageUrl(img) && (
+                    <div className="absolute inset-0 bg-orange-950/10 backdrop-blur-[1px]"></div>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

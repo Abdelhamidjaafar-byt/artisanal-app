@@ -46,7 +46,7 @@ const Footer: React.FC = () => {
                 </div>
             </div>
             <div className="max-w-7xl mx-auto px-4 pt-12 mt-12 border-t border-orange-50 text-center text-gray-400 text-xs uppercase tracking-widest">
-                © 2024 Artisanat Patrimoine Maroc. Tous droits réservés.
+                © {new Date().getFullYear()} Artisanat Patrimoine Maroc. Tous droits réservés.
             </div>
         </footer>
     );

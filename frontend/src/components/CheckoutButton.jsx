@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { ShoppingCart } from "lucide-react";
 import api from "../lib/api";
+import { usePopup } from "../../context/PopupContext";
 
 const CheckoutButton = ({ productId, quantity = 1, customizationDetails = "", price }) => {
     const [loading, setLoading] = useState(false);
+    const { showAlert } = usePopup();
 
     const handleCheckout = async () => {
         setLoading(true);
@@ -36,7 +38,7 @@ const CheckoutButton = ({ productId, quantity = 1, customizationDetails = "", pr
         } catch (error) {
             console.error("Payment initialization failed:", error);
             const errorMessage = error.response?.data?.message || error.message || "Unknown error";
-            alert(`Payment failed to start: ${errorMessage}`);
+            showAlert("Échec du paiement", `Impossible d'initier le paiement : ${errorMessage}`);
         } finally {
             setLoading(false);
         }

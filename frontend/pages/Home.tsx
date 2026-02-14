@@ -42,7 +42,8 @@ const Home: React.FC = () => {
       try {
         const response = await api.get('/products');
         // Map backend products and take the first 4
-        const mappedProducts: Product[] = response.data.map((p: any) => {
+        const productsData = response.data.products || response.data;
+        const mappedProducts: Product[] = productsData.map((p: any) => {
           const mainImage = formatImageUrl(p.images?.[0] || p.image);
           return {
             id: p._id,

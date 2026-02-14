@@ -22,8 +22,10 @@ const SearchResults: React.FC = () => {
                     api.get(`/users/artisans?keyword=${encodeURIComponent(query)}`)
                 ]);
 
+                const productsData = productsRes.data.products || productsRes.data;
+
                 // Map products
-                const mappedProducts: Product[] = productsRes.data.map((p: any) => ({
+                const mappedProducts: Product[] = productsData.map((p: any) => ({
                     id: p._id,
                     artisanId: p.artisan?._id || 'unknown',
                     artisanName: p.artisan?.name || 'Artisan Inconnu',

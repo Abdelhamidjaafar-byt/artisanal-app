@@ -22,7 +22,8 @@ const ArtisanShowroom: React.FC = () => {
         const foundArtisan = artisanRes.data.find((a: any) => a._id === id || a.id === id);
         setArtisan(foundArtisan);
 
-        const mappedProducts = productsRes.data.map((p: any) => ({
+        const productsData = productsRes.data.products || productsRes.data;
+        const mappedProducts = productsData.map((p: any) => ({
           ...p,
           id: p._id,
           image: formatImageUrl(p.images?.[0] || p.image)
@@ -105,9 +106,9 @@ const ArtisanShowroom: React.FC = () => {
         <div className="bg-orange-950 rounded-[50px] overflow-hidden flex flex-col md:flex-row items-center">
           <div className="md:w-1/2 h-80 md:h-[500px]">
             <img
-              src="https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=800&q=80"
+              src={artisan.avatar || 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=800&q=80'}
               className="w-full h-full object-cover opacity-80"
-              alt="Artisan Workshop"
+              alt={`${artisan.name} Workshop`}
             />
           </div>
           <div className="md:w-1/2 p-12 md:p-20 text-white">
