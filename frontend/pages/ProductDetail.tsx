@@ -9,7 +9,6 @@ import { Product, User, UserRole } from '../types';
 import ReviewForm from '../components/ReviewForm';
 import ReviewList from '../components/ReviewList';
 import { useWishlist } from '../context/WishlistContext';
-import { formatImageUrl } from '../utils/imageUtils';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -37,10 +36,6 @@ const ProductDetail: React.FC = () => {
       ]);
       const p = productRes.data;
 
-      const imagesList = p.images?.length > 0
-        ? p.images.map((img: string) => formatImageUrl(img))
-        : [p.image ? formatImageUrl(p.image) : 'https://via.placeholder.com/600'];
-
       const mappedProduct: Product = {
         id: p._id,
         artisanId: p.artisan?._id || 'unknown',
@@ -49,14 +44,12 @@ const ProductDetail: React.FC = () => {
         description: p.description,
         price: p.price,
         category: p.category,
-        image: imagesList[0],
-        images: imagesList,
+        image: p.images?.[0] || 'https://via.placeholder.com/600',
         isCustomizable: p.isCustomizable,
         stock: p.stock
       };
 
       setProduct(mappedProduct);
-      setSelectedImage(imagesList[0]);
       setReviews(reviewsRes.data);
 
       const artisanData: User = {
@@ -147,21 +140,6 @@ const ProductDetail: React.FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
           </button>
-
-          {/* Image Gallery Thumbnails */}
-          {product.images && product.images.length > 1 && (
-            <div className="flex gap-4 mt-4 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-orange-200 scrollbar-track-transparent">
-              {product.images.map((img, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImage(img)}
-                  className={`relative w-20 h-20 flex-shrink-0 rounded-xl overflow-hidden border-2 transition-all duration-300 ${selectedImage === img ? 'border-orange-800 scale-105 shadow-md' : 'border-orange-100 hover:border-orange-300'}`}
-                >
-                  <img src={img} className="w-full h-full object-cover" alt={`${product.title} view ${index + 1}`} />
-                </button>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Right: Product Info */}

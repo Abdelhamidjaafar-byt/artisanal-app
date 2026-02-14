@@ -13,6 +13,17 @@ export const CRAFT_CATEGORIES = [
   'Tannage (دباغة)'
 ];
 
+export const CRAFT_MATERIALS = [
+  'Laine naturelle',
+  'Argile / Céramique',
+  'Cuir',
+  'Bois (Cèdre, Noyer)',
+  'Cuivre / Laiton',
+  'Soie de Sabra',
+  'Coton',
+  'Argent'
+];
+
 export const REGIONS = [
   'Fès-Meknès',
   'Marrakech-Safi',

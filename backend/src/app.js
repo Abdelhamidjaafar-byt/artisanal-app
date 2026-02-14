@@ -38,8 +38,6 @@ app.use(helmet({
 }));
 app.use(cors());
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
 // Special handling for Stripe Webhook to keep raw body
 app.use((req, res, next) => {
   if (req.originalUrl === '/api/stripe/webhook') {

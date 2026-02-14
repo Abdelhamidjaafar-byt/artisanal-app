@@ -6,6 +6,7 @@ import { formatImageUrl } from '../utils/imageUtils';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useNotification } from '../context/NotificationContext';
+import QuickViewModal from './QuickViewModal';
 
 interface ProductCardProps {
   product: Product;
@@ -16,6 +17,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { showNotification } = useNotification();
   const [debugFlash, setDebugFlash] = useState(false);
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -64,10 +66,26 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </button>
 
           {product.isCustomizable && (
-            <span className="absolute top-12 left-1/2 -translate-x-1/2 bg-orange-850/90 text-white text-[10px] font-bold uppercase tracking-[0.2em] py-1.5 px-4 rounded-full shadow-lg backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300">
+            <span className="absolute top-12 left-1/2 -translate-x-1/2 bg-orange-900/90 text-white text-[10px] font-bold uppercase tracking-[0.2em] py-1.5 px-4 rounded-full shadow-lg backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300">
               Sur Mesure
             </span>
           )}
+
+          {/* Quick View Trigger */}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsQuickViewOpen(true);
+            }}
+            className="absolute top-4 left-4 bg-white/90 text-orange-900 p-2.5 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-orange-950 hover:text-white backdrop-blur-sm z-50"
+            title="Aperçu rapide"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </button>
           <button
             onClick={handleAddToCart}
             className="absolute bottom-6 right-6 bg-white/90 text-orange-900 p-3 rounded-full shadow-xl translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 hover:bg-orange-950 hover:text-white backdrop-blur-sm"
@@ -95,6 +113,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </Link>
         </div>
       </div>
+
+      <QuickViewModal
+        product={product}
+        isOpen={isQuickViewOpen}
+        onClose={() => setIsQuickViewOpen(false)}
+      />
     </div>
   );
 };

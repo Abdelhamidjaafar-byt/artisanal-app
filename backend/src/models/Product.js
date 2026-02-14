@@ -32,16 +32,22 @@ const productSchema = new mongoose.Schema(
             required: true,
             enum: [
                 "Tissage (زرابي)",
-                "Poterie et Céramique (خزف وفخار)",
+                "Poterie et Céramique",
                 "Dinanderie (نحاس)",
-                "Menuiserie Traditionnelle (نجارة تقليدية)",
-                "Broderie Artisanale (طرز تقليدي)",
-                "Couture (Kaftan & Djellaba) (خياطة تقليدية)",
-                "Maroquinerie (صناعة الجلود)",
-                "Zellige (زليج)",
-                "Ferronnerie (حدادة فنية)",
-                "Tannage (دباغة)"
+                "Menuiserie Traditionnelle",
+                "Broderie Artisanale",
+                "Couture (Kaftan/Djellaba)",
+                "Maroquinerie",
+                "Zellige",
+                "Ferronnerie",
+                "Tannage"
             ],
+        },
+        material: {
+            type: String, // e.g., "Laine naturelle", "Argile", "Cuir"
+        },
+        region: {
+            type: String, // e.g., "Fès-Meknès", "Marrakech-Safi"
         },
         isCustomizable: {
             type: Boolean,

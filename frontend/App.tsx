@@ -29,6 +29,8 @@ import Contact from './pages/Contact';
 import Legal from './pages/Legal';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -67,6 +69,8 @@ const App: React.FC = () => {
                       <Route path="/artisan/:id" element={<ArtisanShowroom />} />
                       <Route path="/login" element={<Login />} />
                       <Route path="/register" element={<Register />} />
+                      <Route path="/forgot-password" element={<ForgotPassword />} />
+                      <Route path="/reset-password/:token" element={<ResetPassword />} />
                       <Route path="/login-success" element={<LoginSuccess />} />
                       <Route path="/order-success" element={<OrderSuccess />} />
                       <Route path="/order-cancel" element={<OrderCancel />} />

@@ -1,6 +1,6 @@
 import express from "express";
 import { body, validationResult } from "express-validator";
-import { login, register } from "../controllers/auth.controller.js";
+import { login, register, forgotPassword, resetPassword } from "../controllers/auth.controller.js";
 import { verifyToken } from "../middlewares/auth.middleware.js";
 
 import { loginRateLimiter } from "../middlewares/rate-limiter.middleware.js";
@@ -41,5 +41,8 @@ router.post(
 router.get("/test", verifyToken, (req, res) => {
     res.json({ message: "JWT is working!", user: req.user });
 });
+
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password/:token", resetPassword);
 
 export default router;

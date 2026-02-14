@@ -51,6 +51,8 @@ export interface Product {
   images?: string[];
   isCustomizable: boolean;
   stock: number;
+  material?: string;
+  region?: string;
 }
 
 export interface CartItem {
