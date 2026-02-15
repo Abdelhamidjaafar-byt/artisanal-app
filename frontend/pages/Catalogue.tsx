@@ -111,7 +111,7 @@ const Catalogue: React.FC = () => {
 
   const displayProducts = products;
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
+    <div className="max-w-7xl mx-auto px-4 py-12" style={{ backgroundImage: "url(./assets/download.png)", backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat", opacity: 1 }}>
       <div className="mb-12 text-center">
         <h1 className="text-4xl font-heritage font-bold text-orange-950 mb-4">Découvrez l'Excellence Marocaine</h1>
         <p className="text-orange-900/60 max-w-2xl mx-auto">
