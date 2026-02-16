@@ -36,12 +36,14 @@ const Home: React.FC = () => {
   const carouselRef = useRef<HTMLDivElement>(null);
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isJumping, setIsJumping] = useState(false);
 
+  // Featured Products Loading
   useEffect(() => {
     const fetchFeaturedProducts = async () => {
       try {
         const response = await api.get('/products');
-        // Map backend products and take the first 4
         const productsData = response.data.products || response.data;
         const mappedProducts: Product[] = productsData.map((p: any) => {
           const mainImage = formatImageUrl(p.images?.[0] || p.image);
@@ -70,32 +72,66 @@ const Home: React.FC = () => {
     fetchFeaturedProducts();
   }, []);
 
+  // Infinite Scroll Logic
+  useEffect(() => {
+    const carousel = carouselRef.current;
+    if (!carousel) return;
+
+    let animationId: number;
+    let lastTime = performance.now();
+
+    const update = (time: number) => {
+      if (!isPaused && !isJumping) {
+        // Smoothly increment based on time delta for consistent speed
+        const delta = (time - lastTime) / 16.67; // normalize to 60fps
+        carousel.scrollLeft += 1 * delta;
+
+        const singleSetWidth = carousel.scrollWidth / 3;
+
+        // Jump back to middle when reaching near end
+        if (carousel.scrollLeft >= singleSetWidth * 2) {
+          carousel.scrollLeft -= singleSetWidth;
+        }
+        // Jump forward to middle when reaching near start
+        if (carousel.scrollLeft <= singleSetWidth * 0.5) {
+          carousel.scrollLeft += singleSetWidth;
+        }
+      }
+      lastTime = time;
+      animationId = requestAnimationFrame(update);
+    };
+
+    // Initial position in the middle
+    const singleSetWidth = carousel.scrollWidth / 3;
+    if (carousel.scrollLeft === 0) {
+      carousel.scrollLeft = singleSetWidth;
+    }
+
+    animationId = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(animationId);
+  }, [isPaused, isJumping]);
+
   const scroll = (direction: 'left' | 'right') => {
     if (carouselRef.current) {
-      const scrollAmount = 300;
-      carouselRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
+      setIsPaused(true);
+      const scrollAmount = 400;
+      const target = direction === 'left'
+        ? carouselRef.current.scrollLeft - scrollAmount
+        : carouselRef.current.scrollLeft + scrollAmount;
+
+      carouselRef.current.scrollTo({
+        left: target,
         behavior: 'smooth'
       });
+
+      // Resume auto-scroll after a longer delay to ensure smooth transition finish
+      setTimeout(() => setIsPaused(false), 800);
     }
   };
 
   return (
     <div className="flex flex-col gap-16 pb-16">
       <style>{`
-        @keyframes slideCarousel {
-          from { transform: translateX(0); }
-          to { transform: translateX(-50%); }
-        }
-        .animate-slide {
-          display: flex;
-          width: max-content;
-          animation: slideCarousel 40s linear infinite;
-          will-change: transform;
-        }
-        .animate-slide:hover {
-          animation-play-state: paused;
-        }
         .no-scrollbar::-webkit-scrollbar {
           display: none;
         }
@@ -173,14 +209,16 @@ const Home: React.FC = () => {
           <div
             ref={carouselRef}
             className="overflow-x-auto pb-8 pt-2 relative no-scrollbar"
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
           >
-            <div className="flex gap-6 animate-slide w-max">
-              {/* Direct categories and duplicated categories for seamless loop */}
-              {[...CRAFT_CATEGORIES, ...CRAFT_CATEGORIES].map((cat, idx) => (
+            <div className="flex gap-6 w-max">
+              {/* Triple set duplication for seamless loop */}
+              {[...CRAFT_CATEGORIES, ...CRAFT_CATEGORIES, ...CRAFT_CATEGORIES].map((cat, idx) => (
                 <Link
-                  key={idx}
+                  key={`${cat}-${idx}`}
                   to={`/catalogue?category=${encodeURIComponent(cat)}`}
-                  className="flex-shrink-0 w-64 h-80 rounded-[40px] hover:border-orange-800 transition-all duration-500 cursor-pointer shadow-sm hover:shadow-xl group/card text-center relative overflow-hidden flex flex-col items-center justify-center p-8"
+                  className="flex-shrink-0 w-64 h-80 rounded-[40px] border border-transparent hover:border-orange-800 transition-all duration-500 cursor-pointer shadow-sm hover:shadow-xl group/card text-center relative overflow-hidden flex flex-col items-center justify-center p-8"
                   style={{
                     backgroundImage: `url(${CATEGORY_IMAGES[cat]})`,
                     backgroundSize: 'cover',
@@ -188,9 +226,9 @@ const Home: React.FC = () => {
                   }}
                 >
                   <div className="absolute inset-0 bg-orange-950/40 group-hover/card:bg-orange-950/60 transition-colors duration-500"></div>
-                  <div className="relative z-10">
+                  <div className="relative z-10 px-4">
                     <p className="text-white font-heritage font-bold text-xl leading-snug drop-shadow-md">{cat}</p>
-                    <p className="text-orange-200 text-xs mt-4 font-bold uppercase tracking-widest opacity-0 group-hover/card:opacity-100 transition-opacity">Découvrir</p>
+                    <p className="text-orange-200 text-xs mt-4 font-bold uppercase tracking-widest opacity-0 group-hover/card:opacity-100 transition-all duration-500 transform translate-y-2 group-hover/card:translate-y-0">Découvrir</p>
                   </div>
                 </Link>
               ))}
