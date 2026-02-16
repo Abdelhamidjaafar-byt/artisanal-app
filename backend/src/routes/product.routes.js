@@ -43,6 +43,7 @@ router.post("/", verifyToken, authorize("ARTISAN", "ADMIN"), checkApproved, uplo
 
 // Owner: Update/Delete
 router.put("/:id", verifyToken, authorize("ARTISAN", "ADMIN"), upload.array("images", 5), productValidation, updateProduct);
+router.patch("/:id", verifyToken, authorize("ARTISAN", "ADMIN"), upload.array("images", 5), productValidation, updateProduct);
 router.delete("/:id", verifyToken, authorize("ARTISAN"), deleteProduct);
 
 export default router;

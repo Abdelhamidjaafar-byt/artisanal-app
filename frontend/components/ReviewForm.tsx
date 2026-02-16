@@ -38,7 +38,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ productId, onReviewSubmitted, e
             if (editingReview) {
                 // For editing, we send both remaining existing image URLs and new files
                 existingImages.forEach(img => formData.append('images', img));
-                await api.put(`/reviews/${editingReview.id}`, formData, {
+                await api.patch(`/reviews/${editingReview.id}`, formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
             } else {

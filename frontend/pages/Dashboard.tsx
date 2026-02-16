@@ -4,8 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { UserRole, OrderStatus, Order, Notification } from '../types';
 import { useNotification } from '../context/NotificationContext';
 import { usePopup } from '../context/PopupContext';
-import { MOCK_PRODUCTS, CRAFT_CATEGORIES } from '../constants';
-import { Edit, Trash2 } from 'lucide-react';
+import { CRAFT_CATEGORIES } from '../constants';
+import { Edit, Trash2, X, Undo, RefreshCcw } from 'lucide-react';
 import { generateProductDescription, getArtisanAdvisorResponse } from '../geminiService';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
@@ -60,6 +60,35 @@ const Dashboard: React.FC = () => {
   }, []);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [loadingOrderDetail, setLoadingOrderDetail] = useState(false);
+  const [statusReason, setStatusReason] = useState('');
+  const [showReasonInput, setShowReasonInput] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<OrderStatus | null>(null);
+  const [currentOrdersPage, setCurrentOrdersPage] = useState(1);
+  const [currentProductsPage, setCurrentProductsPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+
+  const getUserId = (u: any) => u?.id || u?._id || (typeof u === 'string' ? u : null);
+  const currentUserId = getUserId(user);
+
+  const checkIsAdmin = (u: any) => {
+    if (!u || !u.role) return false;
+    const roles = Array.isArray(u.role) ? u.role : [u.role];
+    return roles.some(r => r === 'ADMIN' || r === UserRole.ADMIN);
+  };
+
+  const isAdmin = checkIsAdmin(user);
+
+  const isActualArtisan =
+    (typeof selectedOrder?.artisan === 'object' && selectedOrder.artisan !== null && (getUserId(selectedOrder.artisan) === currentUserId)) ||
+    ((selectedOrder as any)?.artisanId === currentUserId) ||
+    (typeof selectedOrder?.artisan === 'string' && (selectedOrder.artisan as string) === currentUserId);
+
+  const isActualClient =
+    (typeof selectedOrder?.client === 'object' && selectedOrder.client !== null && (getUserId(selectedOrder.client) === currentUserId)) ||
+    ((selectedOrder as any)?.clientId === currentUserId) ||
+    (typeof selectedOrder?.client === 'string' && (selectedOrder.client as string) === currentUserId);
+
+  const canManageStatus = isAdmin || isActualArtisan;
   const [editForm, setEditForm] = useState({
     name: user?.name || '',
     email: user?.email || '',
@@ -149,9 +178,9 @@ const Dashboard: React.FC = () => {
   }
 
 
-  const handleUpdateStatus = async (orderId: string, newStatus: OrderStatus) => {
+  const handleUpdateStatus = async (orderId: string, newStatus: OrderStatus, reason?: string) => {
     try {
-      const res = await api.put(`/orders/${orderId}/status`, { status: newStatus });
+      const res = await api.patch(`/orders/${orderId}/status`, { status: newStatus, reason });
 
       // Update local state
       setOrders(orders.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
@@ -159,17 +188,18 @@ const Dashboard: React.FC = () => {
         setSelectedOrder({ ...selectedOrder, status: newStatus });
       }
       showNotification('Statut mis à jour avec succès', 'success');
-    } catch (error) {
+      setShowReasonInput(false);
+      setStatusReason('');
+      setPendingStatus(null);
+    } catch (error: any) {
       console.error('Failed to update status:', error);
-      console.error('Failed to update status:', error);
-      // @ts-ignore
       showNotification(`Erreur lors de la mise à jour du statut: ${error.response?.data?.message || error.message}`, 'error');
     }
   };
 
   const handleMarkAsRead = async (notificationId: string) => {
     try {
-      await api.put(`/notifications/${notificationId}/read`);
+      await api.patch(`/notifications/${notificationId}/read`);
       setNotifications(notifications.map(n => n._id === notificationId ? { ...n, isRead: true } : n));
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
@@ -264,7 +294,7 @@ const Dashboard: React.FC = () => {
       });
 
       if (editingProduct) {
-        await api.put(`/products/${editingProduct._id || editingProduct.id}`, formData, {
+        await api.patch(`/products/${editingProduct._id || editingProduct.id}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         showNotification("Produit mis à jour !", 'success');
@@ -312,7 +342,7 @@ const Dashboard: React.FC = () => {
       formData.append('avatar', file);
 
       try {
-        const res = await api.put('/users/avatar', formData, {
+        const res = await api.patch('/users/avatar', formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
 
@@ -426,43 +456,61 @@ const Dashboard: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-orange-50">
-                      {orders.map(order => (
-                        <tr key={order._id} className="text-orange-950 font-medium">
-                          <td className="py-4">
-                            <div className="flex flex-col">
-                              <span>Commande #{order._id?.slice(-6)}</span>
-                              <span className="text-xs text-orange-600">{order.items?.length} article(s)</span>
-                            </div>
-                          </td>
-                          {!user.role.includes(UserRole.ARTISAN) && (
+                      {(() => {
+                        const paginatedOrders = orders.slice((currentOrdersPage - 1) * ITEMS_PER_PAGE, currentOrdersPage * ITEMS_PER_PAGE);
+                        return paginatedOrders.map(order => (
+                          <tr key={order._id} className="text-orange-950 font-medium hover:bg-orange-50/30 transition">
                             <td className="py-4">
-                              {order.artisan?.name || 'Artisan'}
+                              <div className="flex flex-col">
+                                <span className="font-bold">Commande #{order._id?.slice(-6).toUpperCase()}</span>
+                                <span className="text-xs text-orange-600 font-medium">{order.items?.length} article(s)</span>
+                              </div>
                             </td>
-                          )}
-                          {user.role.includes(UserRole.ARTISAN) && (
+                            {!user.role.includes(UserRole.ARTISAN) && (
+                              <td className="py-4">
+                                {order.artisan?.name || 'Artisan'}
+                              </td>
+                            )}
+                            {user.role.includes(UserRole.ARTISAN) && (
+                              <td className="py-4">
+                                {order.client?.name || 'Client'}
+                              </td>
+                            )}
+                            <td className="py-4 text-orange-800/70">{new Date(order.createdAt).toLocaleDateString('fr-FR')}</td>
+                            <td className="py-4 font-bold">{order.totalAmount} MAD</td>
                             <td className="py-4">
-                              {order.client?.name || 'Client'}
+                              <StatusBadge status={order.status} />
                             </td>
-                          )}
-                          <td className="py-4">{new Date(order.createdAt).toLocaleDateString('fr-FR')}</td>
-                          <td className="py-4">{order.totalAmount} MAD</td>
-                          <td className="py-4">
-                            <StatusBadge status={order.status} />
-                          </td>
-                          <td className="py-4">
-                            <button
-                              onClick={() => handleViewOrder(order._id)}
-                              className="text-orange-700 text-sm font-bold hover:underline"
-                            >
-                              Voir
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
+                            <td className="py-4">
+                              <button
+                                onClick={() => handleViewOrder(order._id)}
+                                className="px-4 py-2 bg-orange-50 text-orange-700 rounded-lg text-sm font-bold hover:bg-orange-100 transition shadow-sm"
+                              >
+                                Voir
+                              </button>
+                            </td>
+                          </tr>
+                        ));
+                      })()}
                     </tbody>
                   </table>
                 </div>
               )}
+
+              {/* Pagination Controls for Orders */}
+              {(() => {
+                const totalPages = Math.ceil(orders.length / ITEMS_PER_PAGE);
+                if (totalPages <= 1) return null;
+                return (
+                  <div className="mt-8 flex items-center justify-center gap-2 pt-4 border-t border-orange-50">
+                    <button onClick={() => setCurrentOrdersPage(prev => Math.max(1, prev - 1))} disabled={currentOrdersPage === 1} className="px-4 py-2 rounded-lg text-sm font-bold text-orange-950/60 hover:bg-orange-50 disabled:opacity-30 transition">Précédent</button>
+                    {[...Array(totalPages)].map((_, i) => (
+                      <button key={i + 1} onClick={() => setCurrentOrdersPage(i + 1)} className={`w-10 h-10 rounded-lg text-sm font-bold transition-all ${currentOrdersPage === i + 1 ? 'bg-orange-950 text-white shadow-md' : 'text-orange-950/60 hover:bg-orange-50'}`}>{i + 1}</button>
+                    ))}
+                    <button onClick={() => setCurrentOrdersPage(prev => Math.min(totalPages, prev + 1))} disabled={currentOrdersPage === totalPages} className="px-4 py-2 rounded-lg text-sm font-bold text-orange-950/60 hover:bg-orange-50 disabled:opacity-30 transition">Suivant</button>
+                  </div>
+                );
+              })()}
             </section>
 
             {user.role.includes(UserRole.ARTISAN) && (
@@ -475,33 +523,52 @@ const Dashboard: React.FC = () => {
                     <div className="text-center py-4 text-orange-800/60 text-sm">Vous n'avez pas encore exposé de produits.</div>
                   ) : (
                     <div className="grid sm:grid-cols-2 gap-4">
-                      {products.map(prod => (
-                        <div key={prod._id} className="flex gap-4 p-4 border border-orange-50 rounded-2xl group relative">
-                          <img src={formatImageUrl(prod.images?.[0] || prod.image)} className="w-20 h-20 rounded-lg object-cover" alt="" />
-                          <div className="flex flex-col justify-center flex-1">
-                            <h4 className="font-bold text-orange-950">{prod.title}</h4>
-                            <p className="text-sm text-orange-700 font-bold">{prod.price} MAD</p>
+                      {(() => {
+                        const paginatedProducts = products.slice((currentProductsPage - 1) * ITEMS_PER_PAGE, currentProductsPage * ITEMS_PER_PAGE);
+                        return paginatedProducts.map(prod => (
+                          <div key={prod._id} className="flex gap-4 p-4 border border-orange-50 rounded-2xl group relative bg-orange-50/10 hover:bg-white hover:shadow-md transition-all">
+                            <img src={formatImageUrl(prod.images?.[0] || prod.image)} className="w-20 h-20 rounded-xl object-cover shadow-sm" alt="" />
+                            <div className="flex flex-col justify-center flex-1">
+                              <h4 className="font-bold text-orange-950">{prod.title}</h4>
+                              <p className="text-sm text-orange-700 font-bold">{prod.price} MAD</p>
+                              <p className="text-[10px] text-orange-900/40 uppercase tracking-widest font-bold mt-1">{prod.category}</p>
+                            </div>
+                            <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition translate-x-2 group-hover:translate-x-0">
+                              <button
+                                onClick={() => handleEditProduct(prod)}
+                                className="p-2 bg-white text-orange-700 rounded-xl border border-orange-100 hover:bg-orange-50 transition shadow-sm"
+                                title="Modifier"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteProduct(prod._id || prod.id)}
+                                className="p-2 bg-red-50 text-red-600 rounded-xl border border-red-100 hover:bg-red-100 transition shadow-sm"
+                                title="Supprimer"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           </div>
-                          <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition">
-                            <button
-                              onClick={() => handleEditProduct(prod)}
-                              className="p-2 bg-orange-50 text-orange-700 rounded-lg hover:bg-orange-100 transition"
-                              title="Modifier"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteProduct(prod._id || prod.id)}
-                              className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition"
-                              title="Supprimer"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
+                        ));
+                      })()}
                     </div>
                   )}
+
+                  {/* Pagination Controls for Products */}
+                  {(() => {
+                    const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
+                    if (totalPages <= 1) return null;
+                    return (
+                      <div className="mt-8 flex items-center justify-center gap-2 pt-4 border-t border-orange-50">
+                        <button onClick={() => setCurrentProductsPage(prev => Math.max(1, prev - 1))} disabled={currentProductsPage === 1} className="px-4 py-2 rounded-lg text-sm font-bold text-orange-950/60 hover:bg-orange-50 disabled:opacity-30 transition">Précédent</button>
+                        {[...Array(totalPages)].map((_, i) => (
+                          <button key={i + 1} onClick={() => setCurrentProductsPage(i + 1)} className={`w-10 h-10 rounded-lg text-sm font-bold transition-all ${currentProductsPage === i + 1 ? 'bg-orange-950 text-white shadow-md' : 'text-orange-950/60 hover:bg-orange-50'}`}>{i + 1}</button>
+                        ))}
+                        <button onClick={() => setCurrentProductsPage(prev => Math.min(totalPages, prev + 1))} disabled={currentProductsPage === totalPages} className="px-4 py-2 rounded-lg text-sm font-bold text-orange-950/60 hover:bg-orange-50 disabled:opacity-30 transition">Suivant</button>
+                      </div>
+                    );
+                  })()}
                 </section>
 
                 {/* Notifications Section */}
@@ -866,33 +933,139 @@ const Dashboard: React.FC = () => {
                     </span>
                   </div>
 
-                  {/* Status Update Controls for Artisan */}
-                  {user.role.includes(UserRole.ARTISAN) && (
-                    <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
-                      <h4 className="text-sm font-bold text-orange-950 mb-3">Mettre à jour le statut</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {Object.values(OrderStatus).map((status) => (
-                          <button
-                            key={status}
-                            onClick={() => handleUpdateStatus(selectedOrder!._id!, status)}
-                            disabled={selectedOrder.status === status}
-                            className={`px-3 py-1 rounded-lg text-xs font-bold transition ${selectedOrder.status === status
-                              ? 'bg-orange-950 text-white cursor-default'
-                              : 'bg-white text-orange-800 border border-orange-200 hover:bg-orange-100'
-                              }`}
-                          >
-                            {status === OrderStatus.IN_CART && 'Panier'}
-                            {status === OrderStatus.PENDING && 'En attente'}
-                            {status === OrderStatus.IN_FABRICATION && 'En fabrication'}
-                            {status === OrderStatus.FINISHED && 'Terminé'}
-                            {status === OrderStatus.DELIVERED && 'Livré'}
-                            {status === OrderStatus.PAID && 'Payé'}
-                            {status === OrderStatus.SHIPPED && 'Expédié'}
-                            {status === OrderStatus.CANCELLED && 'Annulé'}
-                            {status === OrderStatus.REFUNDED && 'Remboursé'}
-                          </button>
-                        ))}
-                      </div>
+                  {/* Status Management (Admin/Artisan) */}
+                  {canManageStatus && (
+                    <div className="bg-orange-50 p-4 rounded-xl border border-orange-100 mb-6">
+                      <h4 className="text-sm font-bold text-orange-950 mb-3 text-center uppercase tracking-widest opacity-70">Gestion du Statut</h4>
+                      {isAdmin ? (
+                        <select
+                          value={selectedOrder.status}
+                          onChange={(e) => handleUpdateStatus(selectedOrder._id!, e.target.value as OrderStatus)}
+                          className="w-full bg-white text-orange-900 font-bold py-3 px-4 rounded-xl border border-orange-200 focus:ring-2 focus:ring-orange-200 shadow-sm"
+                        >
+                          {Object.values(OrderStatus).map((s) => (
+                            <option key={s} value={s}>{s}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <div className="flex flex-wrap gap-2 justify-center">
+                          {Object.values(OrderStatus).map((status) => (
+                            <button
+                              key={status}
+                              onClick={() => {
+                                if (status === OrderStatus.CANCELLED || status === OrderStatus.REFUNDED) {
+                                  setPendingStatus(status);
+                                  setShowReasonInput(true);
+                                } else {
+                                  handleUpdateStatus(selectedOrder!._id!, status);
+                                }
+                              }}
+                              disabled={selectedOrder.status === status}
+                              className={`px-3 py-2 rounded-lg text-xs font-bold transition flex-1 min-w-[120px] ${selectedOrder.status === status
+                                ? 'bg-orange-950 text-white cursor-default shadow-md'
+                                : 'bg-white text-orange-800 border border-orange-200 hover:bg-orange-100 hover:shadow-sm'
+                                }`}
+                            >
+                              {status === OrderStatus.IN_CART && 'Panier'}
+                              {status === OrderStatus.PENDING && 'En attente'}
+                              {status === OrderStatus.IN_FABRICATION && 'En fabrication'}
+                              {status === OrderStatus.FINISHED && 'Terminé'}
+                              {status === OrderStatus.DELIVERED && 'Livré'}
+                              {status === OrderStatus.PAID && 'Payé'}
+                              {status === OrderStatus.SHIPPED && 'Expédié'}
+                              {status === OrderStatus.CANCELLED && 'Annulé'}
+                              {status === OrderStatus.REFUNDED && 'Remboursé'}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Client Actions */}
+                  {isActualClient && (
+                    <div className="space-y-4 mb-6">
+                      {showReasonInput ? (
+                        <div className="bg-white p-4 rounded-xl border border-orange-200 animate-fade-in shadow-inner">
+                          <h4 className="font-bold text-orange-950 mb-2">
+                            {pendingStatus === OrderStatus.CANCELLED ? "Motif de l'annulation" : "Motif du remboursement"}
+                          </h4>
+                          <textarea
+                            className="w-full bg-orange-50 border border-orange-100 rounded-xl p-3 text-sm focus:outline-none focus:ring-1 focus:ring-orange-400 mb-3"
+                            rows={3}
+                            placeholder="Veuillez préciser la raison..."
+                            value={statusReason}
+                            onChange={(e) => setStatusReason(e.target.value)}
+                          ></textarea>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                setShowReasonInput(false);
+                                setStatusReason('');
+                                setPendingStatus(null);
+                              }}
+                              className="flex-1 py-3 text-sm font-bold text-orange-800 hover:bg-orange-50 rounded-xl border border-orange-100 transition"
+                            >
+                              Annuler
+                            </button>
+                            <button
+                              onClick={() => {
+                                // If cancelling a paid order, it should demand a refund
+                                if (pendingStatus === OrderStatus.CANCELLED && (selectedOrder.status === OrderStatus.PAID || selectedOrder.status === OrderStatus.SHIPPED || selectedOrder.status === OrderStatus.DELIVERED)) {
+                                  handleUpdateStatus(selectedOrder._id!, OrderStatus.REFUNDED, statusReason);
+                                } else {
+                                  handleUpdateStatus(selectedOrder._id!, pendingStatus!, statusReason);
+                                }
+                              }}
+                              disabled={!statusReason.trim()}
+                              className="flex-1 py-3 text-sm font-bold bg-orange-700 text-white rounded-xl hover:bg-orange-800 disabled:opacity-50 shadow-md transition"
+                            >
+                              Confirmer
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-3">
+                          {['IN_CART', 'PENDING', 'PAID', 'SHIPPED', 'DELIVERED'].includes(selectedOrder.status) && (
+                            <button
+                              onClick={() => {
+                                setPendingStatus(OrderStatus.CANCELLED);
+                                setShowReasonInput(true);
+                              }}
+                              className="w-full bg-red-50 text-red-600 py-3 rounded-xl font-bold hover:bg-red-100 transition border border-red-100 flex items-center justify-center gap-2 group shadow-sm"
+                            >
+                              <X className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                              {['PAID', 'SHIPPED', 'DELIVERED'].includes(selectedOrder.status) ? "Annuler et demander remboursement" : "Annuler la commande"}
+                            </button>
+                          )}
+                          {['PAID', 'SHIPPED', 'DELIVERED'].includes(selectedOrder.status) && (
+                            <button
+                              onClick={() => {
+                                setPendingStatus(OrderStatus.REFUNDED);
+                                setShowReasonInput(true);
+                              }}
+                              className="w-full bg-orange-50 text-orange-800 py-3 rounded-xl font-bold hover:bg-orange-100 transition border border-orange-100 flex items-center justify-center gap-2 group shadow-sm"
+                            >
+                              <Undo className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                              Demander un remboursement
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Reasons Display */}
+                  {(selectedOrder.status === OrderStatus.CANCELLED && selectedOrder.cancellationReason) && (
+                    <div className="bg-red-50 p-4 rounded-xl border border-red-100 mb-6">
+                      <h3 className="font-bold text-red-800 mb-1">Motif d'annulation</h3>
+                      <p className="text-red-700 text-sm italic">"{selectedOrder.cancellationReason}"</p>
+                    </div>
+                  )}
+                  {(selectedOrder.status === OrderStatus.REFUNDED && selectedOrder.refundReason) && (
+                    <div className="bg-orange-50 p-4 rounded-xl border border-orange-100 mb-6">
+                      <h3 className="font-bold text-orange-800 mb-1">Motif du remboursement</h3>
+                      <p className="text-orange-700 text-sm italic">"{selectedOrder.refundReason}"</p>
                     </div>
                   )}
 

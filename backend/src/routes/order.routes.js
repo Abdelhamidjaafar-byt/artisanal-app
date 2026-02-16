@@ -4,6 +4,7 @@ import {
     createOrder,
     getMyOrders,
     getOrders,
+    getOrderById,
     updateOrderStatus,
     updateOrder,
     deleteOrder
@@ -17,9 +18,9 @@ router.use(verifyToken);
 router.post("/", createOrder);
 router.get("/my-orders", getMyOrders);
 router.get("/", getOrders); // For Admin
-router.get("/:id", getOrders); // Reuse or need separate GetOrderById? Controller has getOrders but it finds all.
+router.get("/:id", getOrderById);
 router.patch("/:id", updateOrder);
-router.put("/:id/status", updateOrderStatus);
+router.patch("/:id/status", updateOrderStatus);
 router.delete("/:id", deleteOrder);
 
 export default router;

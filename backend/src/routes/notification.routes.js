@@ -9,7 +9,7 @@ import { verifyToken } from "../middlewares/auth.middleware.js";
 const router = express.Router();
 
 router.get("/", verifyToken, getMyNotifications);
-router.put("/read-all", verifyToken, markAllAsRead);
-router.put("/:id/read", verifyToken, markAsRead);
+router.patch("/read-all", verifyToken, markAllAsRead);
+router.patch("/:id/read", verifyToken, markAsRead);
 
 export default router;

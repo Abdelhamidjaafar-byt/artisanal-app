@@ -7,7 +7,7 @@ import sendEmail from "../utils/emailService.js";
 // REGISTER
 export const register = async (req, res, next) => {
     try {
-        const { name, username, email, password, role } = req.body;
+        const { name, username, email, password, role, city, region } = req.body;
 
         if (!name || !username || !email || !password) {
             res.status(400);
@@ -36,6 +36,8 @@ export const register = async (req, res, next) => {
             email,
             password: hashedPassword,
             role: roles,
+            city,
+            region,
         });
 
         res.status(201).json({

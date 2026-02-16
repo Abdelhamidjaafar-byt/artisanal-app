@@ -109,11 +109,46 @@ export const getOrders = async (req, res, next) => {
 };
 
 
-// UPDATE ORDER STATUS (Artisan/Admin)
-export const updateOrderStatus = async (req, res, next) => {
-    console.log(`Update order status initiated for order ID: ${req.params.id} with status: ${req.body.status}`);
+// GET ORDER BY ID
+export const getOrderById = async (req, res, next) => {
     try {
-        const { status } = req.body;
+        const order = await Order.findById(req.params.id)
+            .populate("items.product", "title price images")
+            .populate("client", "name email")
+            .populate("artisan", "name email");
+
+        if (!order) {
+            res.status(404);
+            throw new Error("Order not found");
+        }
+
+        // Authorization check
+        // Safeguard against missing populated fields
+        const orderClientId = order.client?._id?.toString() || order.client?.toString();
+        const orderArtisanId = order.artisan?._id?.toString() || order.artisan?.toString();
+
+        const isClient = orderClientId === req.user?.id;
+        const isArtisan = orderArtisanId === req.user?.id;
+        const isAdmin = req.user?.role?.includes("ADMIN");
+
+        if (!isAdmin && !isArtisan && !isClient) {
+            console.log(`Unauthorized access attempt: Order ${req.params.id}, User ${req.user?.id}, Role ${req.user?.role}`);
+            res.status(403);
+            throw new Error("Not authorized to view this order");
+        }
+
+        res.json(order);
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+// UPDATE ORDER STATUS (Artisan/Admin/Client with guards)
+export const updateOrderStatus = async (req, res, next) => {
+    console.log(`Update order status initiated for order ID: ${req.params.id} with status: ${req.body.status} by user: ${req.user.id}`);
+    try {
+        const { status, reason } = req.body;
         const order = await Order.findById(req.params.id);
 
         if (!order) {
@@ -121,31 +156,83 @@ export const updateOrderStatus = async (req, res, next) => {
             throw new Error("Order not found");
         }
 
+        const orderClientId = order.client?.toString();
+        const orderArtisanId = order.artisan?.toString();
 
+        const isClient = orderClientId === req.user?.id;
+        const isArtisan = orderArtisanId === req.user?.id;
+        const isAdmin = req.user?.role?.includes("ADMIN");
+
+        // Authorization checks
+        if (!isAdmin && !isArtisan && !isClient) {
+            res.status(403);
+            throw new Error("Not authorized to update this order");
+        }
+
+        // Handle reason if provided
+        if (reason) {
+            if (status === 'CANCELLED') {
+                order.cancellationReason = reason;
+            } else if (status === 'REFUNDED') {
+                order.refundReason = reason;
+            }
+        }
+
+        // Client specific guards
+        if (isClient && !isAdmin && !isArtisan) {
+            if (status === 'CANCELLED') {
+                if (order.status !== 'PENDING' && order.status !== 'IN_CART') {
+                    res.status(400);
+                    throw new Error("Cannot cancel order after it has started processing");
+                }
+            } else if (status === 'REFUNDED') {
+                const refundableStatuses = ['PAID', 'SHIPPED', 'DELIVERED'];
+                if (!refundableStatuses.includes(order.status)) {
+                    res.status(400);
+                    throw new Error("Order is not in a refundable state");
+                }
+            } else {
+                res.status(403);
+                throw new Error("Clients can only cancel or request refunds");
+            }
+        }
+
+        // Artisan specific guards (optional, but good practice)
+        if (isArtisan && !isAdmin) {
+            // Artisans shouldn't be able to set it back to IN_CART for example
+            const restrictedStatuses = ['IN_CART'];
+            if (restrictedStatuses.includes(status)) {
+                res.status(400);
+                throw new Error("Invalid status update for artisan");
+            }
+        }
 
         order.status = status;
         await order.save();
 
-        // Create in-app notification
+        // Create in-app notification for the OTHER party
+        const notifyTarget = isClient ? order.artisan : order.client;
+        const notifyType = isClient ? "SYSTEM" : "ORDER_STATUS";
+
         await createNotification({
-            user: order.client,
-            message: `Votre commande #${order._id.toString().slice(-6)} est maintenant: ${status}`,
-            type: "ORDER_STATUS",
+            user: notifyTarget,
+            message: `La commande #${order._id.toString().slice(-6)} est maintenant: ${status}`,
+            type: notifyType,
             orderId: order._id
         });
 
-        // Notify the client about status update via Socket
-        emitToUser(order.client, 'order_status_updated', {
+        // Notify via Socket
+        emitToUser(notifyTarget, 'order_status_updated', {
             orderId: order._id,
             status: order.status,
-            message: `Your order status has been updated to ${status}`
+            message: `Order status has been updated to ${status}`
         });
 
         // Send Email Notification
-        // Need to populate client to get email if not already populated
-        const fullOrder = await order.populate('client', 'email name');
-        if (fullOrder.client && fullOrder.client.email) {
-            await sendOrderStatusEmail(fullOrder.client.email, order._id, status);
+        const fullOrder = await order.populate('client artisan');
+        const targetEmail = isClient ? fullOrder.artisan?.email : fullOrder.client?.email;
+        if (targetEmail) {
+            await sendOrderStatusEmail(targetEmail, order._id, status);
         }
 
         res.json(order);

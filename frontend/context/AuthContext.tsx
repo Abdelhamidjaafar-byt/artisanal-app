@@ -77,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateUser = async (data: Partial<User>) => {
     try {
-      const response = await api.put('/user/profile', data);
+      const response = await api.patch('/users/profile', data);
       const backendUser = response.data;
 
       const userRoles = Array.isArray(backendUser.role)

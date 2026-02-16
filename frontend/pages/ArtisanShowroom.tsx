@@ -16,7 +16,7 @@ const ArtisanShowroom: React.FC = () => {
       try {
         const [artisanRes, productsRes] = await Promise.all([
           api.get(`/users/artisans`),
-          api.get(`/products?artisanId=${id}`)
+          api.get(`/products?artisan=${id}&limit=50`)
         ]);
 
         const foundArtisan = artisanRes.data.find((a: any) => a._id === id || a.id === id);
