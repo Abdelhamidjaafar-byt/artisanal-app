@@ -110,12 +110,22 @@ const ProductDetail: React.FC = () => {
 
   const handleCustomSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-    showNotification("Votre demande sur-mesure a été envoyée à l'artisan ! Il vous contactera prochainement.", "success");
+    if (!product) return;
+
+    const details = `Dimensions: ${customData.dimensions}\nNotes: ${customData.notes}`;
+
+    addItem({
+      productId: product.id,
+      title: `${product.title} (Sur Mesure)`,
+      price: product.price, // Or a custom price logic if needed, for now using base price
+      quantity: 1,
+      image: product.image,
+      customizationDetails: details
+    });
+
+    showNotification("Votre demande sur-mesure a été ajoutée au panier !", "success");
     setIsCustomModalOpen(false);
+    setCustomData({ dimensions: '', notes: '' });
   };
 
   const isFavorited = isInWishlist(product.id);
@@ -304,7 +314,7 @@ const ProductDetail: React.FC = () => {
                 type="submit"
                 className="w-full bg-orange-800 text-white py-4 rounded-xl font-bold hover:bg-orange-900 transition shadow-lg"
               >
-                Envoyer ma Demande
+                Envoyer au Panier
               </button>
             </form>
           </div>
