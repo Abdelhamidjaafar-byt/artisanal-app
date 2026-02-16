@@ -15,17 +15,27 @@ export const createCheckoutSession = async (req, res) => {
             return res.status(404).json({ message: 'Commande introuvable' });
         }
 
-        const line_items = order.items.map((item) => ({
-            price_data: {
-                currency: 'mad',
-                product_data: {
-                    name: item.product?.title || 'Produit Artisanal',
-                    images: item.product?.images || [],
+        const baseUrl = process.env.BACKEND_URL || 'http://localhost:3000';
+
+        const line_items = order.items.map((item) => {
+            const images = (item.product?.images || [])
+                .map(img => img.startsWith('http') ? img : `${baseUrl}/${img.startsWith('/') ? img.slice(1) : img}`)
+                .filter(img => {
+                    try { new URL(img); return true; } catch { return false; }
+                });
+
+            return {
+                price_data: {
+                    currency: 'mad',
+                    product_data: {
+                        name: item.product?.title || 'Produit Artisanal',
+                        images: images.length > 0 ? images : [],
+                    },
+                    unit_amount: Math.round((item.price || item.product?.price || 0) * 100),
                 },
-                unit_amount: Math.round((item.price || item.product?.price || 0) * 100),
-            },
-            quantity: item.quantity || 1,
-        }));
+                quantity: item.quantity || 1,
+            };
+        });
 
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],

@@ -81,8 +81,11 @@ export interface Order {
   notes?: string;
   items?: any[];
   shippingAddress?: string;
-  artisan?: { name: string };
-  client?: { name: string };
+  artisan?: string | { _id: string; name: string; email?: string };
+  client?: string | { _id: string; name: string; email?: string };
+  cancellationReason?: string;
+  refundReason?: string;
+  updatedAt?: string;
 }
 
 export interface CustomRequest {

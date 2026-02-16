@@ -65,6 +65,17 @@ const AdminDashboard: React.FC = () => {
         }
     };
 
+    const handleUpdateOrderStatus = async (id: string, newStatus: string) => {
+        try {
+            await api.patch(`/orders/${id}/status`, { status: newStatus });
+            setOrders(prev => prev.map(o => ((o._id === id || o.id === id) ? { ...o, status: newStatus } : o)));
+            showNotification("Statut de la commande mis à jour.", 'success');
+        } catch (error) {
+            console.error('Error updating order status:', error);
+            showNotification("Erreur lors de la mise à jour du statut.", 'error');
+        }
+    };
+
     const handleDeleteUser = async (id: string) => {
         const confirmed = await showConfirm(
             "Confirmation de suppression",
@@ -219,35 +230,53 @@ const AdminDashboard: React.FC = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {pendingArtisans.map((artisan: any) => (
-                                        <tr key={artisan._id || artisan.id} className="border-b border-orange-50 hover:bg-orange-50/30 transition">
-                                            <td className="py-4 px-2">
-                                                <div className="font-bold text-orange-900">{artisan.name}</div>
-                                            </td>
-                                            <td className="py-4 px-2 text-orange-800/70">{artisan.email}</td>
-                                            <td className="py-4 px-2 text-orange-800/70 max-w-xs truncate">{artisan.bio || 'Aucune bio'}</td>
-                                            <td className="py-4 px-2">
-                                                <div className="flex justify-end gap-2">
-                                                    <button
-                                                        onClick={() => handleApprove(artisan._id || artisan.id, true)}
-                                                        className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-700 transition flex items-center gap-2"
-                                                    >
-                                                        <CheckCircle className="w-4 h-4" /> Approuver
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleApprove(artisan._id || artisan.id, false)}
-                                                        className="bg-red-100 text-red-600 px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-200 transition flex items-center gap-2"
-                                                    >
-                                                        <XCircle className="w-4 h-4" /> Rejeter
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                    {(() => {
+                                        const paginatedApprovals = pendingArtisans.slice((currentPage - 1) * USERS_PER_PAGE, currentPage * USERS_PER_PAGE);
+                                        return paginatedApprovals.map((artisan: any) => (
+                                            <tr key={artisan._id || artisan.id} className="border-b border-orange-50 hover:bg-orange-50/30 transition">
+                                                <td className="py-4 px-2">
+                                                    <div className="font-bold text-orange-900">{artisan.name}</div>
+                                                </td>
+                                                <td className="py-4 px-2 text-orange-800/70">{artisan.email}</td>
+                                                <td className="py-4 px-2 text-orange-800/70 max-w-xs truncate">{artisan.bio || 'Aucune bio'}</td>
+                                                <td className="py-4 px-2">
+                                                    <div className="flex justify-end gap-2">
+                                                        <button
+                                                            onClick={() => handleApprove(artisan._id || artisan.id, true)}
+                                                            className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-700 transition flex items-center gap-2"
+                                                        >
+                                                            <CheckCircle className="w-4 h-4" /> Approuver
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleApprove(artisan._id || artisan.id, false)}
+                                                            className="bg-red-100 text-red-600 px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-200 transition flex items-center gap-2"
+                                                        >
+                                                            <XCircle className="w-4 h-4" /> Rejeter
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ));
+                                    })()}
                                 </tbody>
                             </table>
                         </div>
                     )}
+
+                    {/* Pagination Controls for Approvals */}
+                    {(() => {
+                        const totalPages = Math.ceil(pendingArtisans.length / USERS_PER_PAGE);
+                        if (totalPages <= 1) return null;
+                        return (
+                            <div className="mt-8 flex items-center justify-center gap-2">
+                                <button onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1} className="px-4 py-2 rounded-lg text-sm font-bold text-orange-950/60 hover:bg-orange-50 disabled:opacity-30 transition">Précédent</button>
+                                {[...Array(totalPages)].map((_, i) => (
+                                    <button key={i + 1} onClick={() => setCurrentPage(i + 1)} className={`w-10 h-10 rounded-lg text-sm font-bold transition-all ${currentPage === i + 1 ? 'bg-orange-950 text-white shadow-md' : 'text-orange-950/60 hover:bg-orange-50'}`}>{i + 1}</button>
+                                ))}
+                                <button onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages} className="px-4 py-2 rounded-lg text-sm font-bold text-orange-950/60 hover:bg-orange-50 disabled:opacity-30 transition">Suivant</button>
+                            </div>
+                        );
+                    })()}
                 </div>
             ) : activeTab === 'users' ? (
                 /* User Management Section */
@@ -377,36 +406,54 @@ const AdminDashboard: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {products.map((prod: any) => (
-                                    <tr key={prod._id || prod.id} className="border-b border-orange-50 hover:bg-orange-50/30 transition">
-                                        <td className="py-4 px-2">
-                                            <div className="font-bold text-orange-900">{prod.title}</div>
-                                            <div className="text-xs text-orange-800/60">ID: {prod._id?.slice(-8)}</div>
-                                        </td>
-                                        <td className="py-4 px-2">
-                                            <div className="text-orange-900">{prod.artisan?.name || 'Inconnu'}</div>
-                                            <div className="text-xs text-orange-800/60">{prod.artisan?.email}</div>
-                                        </td>
-                                        <td className="py-4 px-2 font-bold text-orange-700">{prod.price} MAD</td>
-                                        <td className="py-4 px-2">
-                                            <span className="bg-orange-50 text-orange-700 px-3 py-1 rounded-full text-xs font-bold uppercase">{prod.category}</span>
-                                        </td>
-                                        <td className="py-4 px-2">
-                                            <div className="flex justify-end gap-2">
-                                                <button
-                                                    onClick={() => handleDeleteProduct(prod._id || prod.id)}
-                                                    className="p-2 text-red-400 hover:text-red-700 hover:bg-red-50 rounded-lg transition"
-                                                    title="Supprimer le produit"
-                                                >
-                                                    <Trash2 className="w-5 h-5" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
+                                {(() => {
+                                    const paginatedProducts = products.slice((currentPage - 1) * USERS_PER_PAGE, currentPage * USERS_PER_PAGE);
+                                    return paginatedProducts.map((prod: any) => (
+                                        <tr key={prod._id || prod.id} className="border-b border-orange-50 hover:bg-orange-50/30 transition">
+                                            <td className="py-4 px-2">
+                                                <div className="font-bold text-orange-900">{prod.title}</div>
+                                                <div className="text-xs text-orange-800/60">ID: {prod._id?.slice(-8)}</div>
+                                            </td>
+                                            <td className="py-4 px-2">
+                                                <div className="text-orange-900">{prod.artisan?.name || 'Inconnu'}</div>
+                                                <div className="text-xs text-orange-800/60">{prod.artisan?.email}</div>
+                                            </td>
+                                            <td className="py-4 px-2 font-bold text-orange-700">{prod.price} MAD</td>
+                                            <td className="py-4 px-2">
+                                                <span className="bg-orange-50 text-orange-700 px-3 py-1 rounded-full text-xs font-bold uppercase">{prod.category}</span>
+                                            </td>
+                                            <td className="py-4 px-2">
+                                                <div className="flex justify-end gap-2">
+                                                    <button
+                                                        onClick={() => handleDeleteProduct(prod._id || prod.id)}
+                                                        className="p-2 text-red-400 hover:text-red-700 hover:bg-red-50 rounded-lg transition"
+                                                        title="Supprimer le produit"
+                                                    >
+                                                        <Trash2 className="w-5 h-5" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ));
+                                })()}
                             </tbody>
                         </table>
                     </div>
+
+                    {/* Pagination Controls for Products */}
+                    {(() => {
+                        const totalPages = Math.ceil(products.length / USERS_PER_PAGE);
+                        if (totalPages <= 1) return null;
+                        return (
+                            <div className="mt-8 flex items-center justify-center gap-2">
+                                <button onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1} className="px-4 py-2 rounded-lg text-sm font-bold text-orange-950/60 hover:bg-orange-50 disabled:opacity-30 transition">Précédent</button>
+                                {[...Array(totalPages)].map((_, i) => (
+                                    <button key={i + 1} onClick={() => setCurrentPage(i + 1)} className={`w-10 h-10 rounded-lg text-sm font-bold transition-all ${currentPage === i + 1 ? 'bg-orange-950 text-white shadow-md' : 'text-orange-950/60 hover:bg-orange-50'}`}>{i + 1}</button>
+                                ))}
+                                <button onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages} className="px-4 py-2 rounded-lg text-sm font-bold text-orange-950/60 hover:bg-orange-50 disabled:opacity-30 transition">Suivant</button>
+                            </div>
+                        );
+                    })()}
                 </div>
             ) : (
                 /* Orders Management Section */
@@ -428,28 +475,58 @@ const AdminDashboard: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-orange-50">
-                                {orders.map((order: any) => (
-                                    <tr key={order._id || order.id} className="hover:bg-orange-50/30 transition">
-                                        <td className="py-4">
-                                            <div className="font-bold text-orange-950">#{order._id?.slice(-6).toUpperCase()}</div>
-                                            <div className="text-xs text-orange-600">{order.items?.length || 0} article(s)</div>
-                                        </td>
-                                        <td className="py-4 font-medium text-orange-900">{order.client?.name || 'Inconnu'}</td>
-                                        <td className="py-4 font-medium text-orange-800">{order.artisan?.name || 'Inconnu'}</td>
-                                        <td className="py-4 font-bold text-orange-950">{order.totalAmount || 0} MAD</td>
-                                        <td className="py-4">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${order.status === 'DELIVERED' ? 'bg-green-100 text-green-700' :
-                                                order.status === 'SHIPPED' ? 'bg-blue-100 text-blue-700' :
-                                                    order.status === 'PENDING' ? 'bg-orange-100 text-orange-700' :
-                                                        'bg-orange-50 text-orange-800'
-                                                }`}>
-                                                {order.status}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))}
+                                {(() => {
+                                    const paginatedOrders = orders.slice((currentPage - 1) * USERS_PER_PAGE, currentPage * USERS_PER_PAGE);
+                                    return paginatedOrders.map((order: any) => (
+                                        <tr key={order._id || order.id} className="hover:bg-orange-50/30 transition">
+                                            <td className="py-4">
+                                                <div className="font-bold text-orange-950">#{order._id?.slice(-6).toUpperCase()}</div>
+                                                <div className="text-xs text-orange-600">{order.items?.length || 0} article(s)</div>
+                                            </td>
+                                            <td className="py-4 font-medium text-orange-900">{order.client?.name || 'Inconnu'}</td>
+                                            <td className="py-4 font-medium text-orange-800">{order.artisan?.name || 'Inconnu'}</td>
+                                            <td className="py-4 font-bold text-orange-950">{order.totalAmount || 0} MAD</td>
+                                            <td className="py-4">
+                                                <select
+                                                    value={order.status}
+                                                    onChange={(e) => handleUpdateOrderStatus(order._id || order.id, e.target.value)}
+                                                    className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border-none focus:ring-2 focus:ring-orange-200 cursor-pointer ${order.status === 'DELIVERED' ? 'bg-green-100 text-green-700' :
+                                                        order.status === 'SHIPPED' ? 'bg-blue-100 text-blue-700' :
+                                                            order.status === 'PENDING' ? 'bg-orange-100 text-orange-700' :
+                                                                'bg-orange-50 text-orange-800'
+                                                        }`}
+                                                >
+                                                    <option value="IN_CART">Panier</option>
+                                                    <option value="PENDING">En attente</option>
+                                                    <option value="IN_FABRICATION">En fabrication</option>
+                                                    <option value="FINISHED">Terminé</option>
+                                                    <option value="PAID">Payé</option>
+                                                    <option value="SHIPPED">Expédié</option>
+                                                    <option value="DELIVERED">Livré</option>
+                                                    <option value="CANCELLED">Annulé</option>
+                                                    <option value="REFUNDED">Remboursé</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    ));
+                                })()}
                             </tbody>
                         </table>
+
+                        {/* Pagination Controls for Orders */}
+                        {(() => {
+                            const totalPages = Math.ceil(orders.length / USERS_PER_PAGE);
+                            if (totalPages <= 1) return null;
+                            return (
+                                <div className="mt-8 flex items-center justify-center gap-2">
+                                    <button onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1} className="px-4 py-2 rounded-lg text-sm font-bold text-orange-950/60 hover:bg-orange-50 disabled:opacity-30 transition">Précédent</button>
+                                    {[...Array(totalPages)].map((_, i) => (
+                                        <button key={i + 1} onClick={() => setCurrentPage(i + 1)} className={`w-10 h-10 rounded-lg text-sm font-bold transition-all ${currentPage === i + 1 ? 'bg-orange-950 text-white shadow-md' : 'text-orange-950/60 hover:bg-orange-50'}`}>{i + 1}</button>
+                                    ))}
+                                    <button onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages} className="px-4 py-2 rounded-lg text-sm font-bold text-orange-950/60 hover:bg-orange-50 disabled:opacity-30 transition">Suivant</button>
+                                </div>
+                            );
+                        })()}
                         {orders.length === 0 && (
                             <div className="text-center py-12 text-orange-800/60 italic font-medium">
                                 Aucune commande enregistrée.

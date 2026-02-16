@@ -21,8 +21,8 @@ router.get("/artisan/:id", getArtisanById);
 
 // Profile routes (Any authenticated user)
 router.get("/profile", verifyToken, getUserProfile);
-router.put("/profile", verifyToken, updateUserProfile);
-router.put("/avatar", verifyToken, upload.single("avatar"), updateUserAvatar);
+router.patch("/profile", verifyToken, updateUserProfile);
+router.patch("/avatar", verifyToken, upload.single("avatar"), updateUserAvatar);
 
 // Wishlist routes
 router.get("/wishlist", verifyToken, getWishlist);

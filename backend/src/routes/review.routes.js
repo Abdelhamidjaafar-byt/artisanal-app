@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.get("/product/:productId", getProductReviews);
 router.post("/", verifyToken, upload.array("images", 5), createReview);
-router.put("/:id", verifyToken, upload.array("images", 5), updateReview);
+router.patch("/:id", verifyToken, upload.array("images", 5), updateReview);
 router.delete("/:id", verifyToken, deleteReview);
 
 export default router;
